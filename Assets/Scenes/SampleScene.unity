@@ -280,6 +280,8 @@ Transform:
   - {fileID: 1527374825}
   - {fileID: 1725004008}
   - {fileID: 670159972}
+  - {fileID: 994879163}
+  - {fileID: 1243293203}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &670159971
@@ -331,6 +333,7 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
   nIterations: 2
   lod: 1
+  step: 1
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -466,6 +469,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &994879162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 994879163}
+  - component: {fileID: 994879164}
+  m_Layer: 0
+  m_Name: EdgeBlur
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &994879163
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994879162}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 477496434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &994879164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994879162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0ff94e8d20b33d46845cb8d63c5ed3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  src: {fileID: 8600000, guid: 10e61b4806594ba48b487c2c3f9f8dbd, type: 2}
+  dst: {fileID: 8400000, guid: 1c68f34fa05f0bc44bc33c4641aa132a, type: 2}
+  shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
+  nIterations: 0
+  lod: 1
+  step: 1
 --- !u!1 &1085179720
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,6 +569,56 @@ Transform:
   - {fileID: 1453895125}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1243293202
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1243293203}
+  - component: {fileID: 1243293204}
+  m_Layer: 0
+  m_Name: SatBlur
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1243293203
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243293202}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 477496434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1243293204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243293202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0ff94e8d20b33d46845cb8d63c5ed3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  src: {fileID: 8600000, guid: be11aba4ef720544c8c89f7429ca29dd, type: 2}
+  dst: {fileID: 8400000, guid: 9671f360248462740b34c51bb778ee10, type: 2}
+  shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
+  nIterations: 11
+  lod: 1
+  step: 38.5
 --- !u!1 &1391716953
 GameObject:
   m_ObjectHideFlags: 0
@@ -678,7 +781,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _targetHSV: {x: 0, y: -0.04, z: 0.63}
   _filterRange: {x: 0, y: 0.61, z: 0.62}
-  _smoothRange: {x: 0, y: 0.09}
+  _smoothRange: {x: 0, y: 0.04}
   _materials:
   - {fileID: 2100000, guid: 0948e4dd2be246f45a755c1342904f23, type: 2}
   - {fileID: 2100000, guid: 5050cc542a5de994aabca5013d4d33d2, type: 2}
@@ -731,6 +834,7 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
   nIterations: 2
   lod: 2
+  step: 17.81
 --- !u!4 &1725004008
 Transform:
   m_ObjectHideFlags: 0

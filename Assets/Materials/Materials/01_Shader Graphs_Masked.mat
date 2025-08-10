@@ -68,7 +68,7 @@ Material:
     - _ColorFilter: {r: 0.43529415, g: 0.4431373, b: 0.4666667, a: 1}
     - _FilterRange: {r: 0, g: 0.61, b: 0.62, a: 0}
     - _HSVFilter: {r: 0, g: 0.54, b: 0.5, a: 0}
-    - _SmoothRange: {r: 0, g: 0.09, b: 0, a: 0}
+    - _SmoothRange: {r: 0, g: 0.04, b: 0, a: 0}
     - _Smoothstep: {r: 0, g: 0.03, b: 0, a: 0}
     - _TargetHSV: {r: 0, g: -0.04, b: 0.63, a: 0}
     - c: {r: 0, g: 0, b: 0, a: 0}
