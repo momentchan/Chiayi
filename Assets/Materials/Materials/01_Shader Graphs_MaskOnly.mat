@@ -20,12 +20,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_Masked
+  m_Name: 01_Shader Graphs_MaskOnly
   m_Shader: {fileID: -6465566751694194690, guid: 955dea0609a37f74e94194948d7b202a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _MODE_MASKED
+  - _MODE_MASKONLY
   m_InvalidKeywords:
   - _MODE_A
   m_LightmapFlags: 4
@@ -58,18 +58,19 @@ Material:
     m_Ints: []
     m_Floats:
     - _FilterRange: 1.17
-    - _MODE: 1
+    - _MODE: 2
     - _Mask: 0
     - _Origin: 0
+    - _Power: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _ColorFilter: {r: 0.43529415, g: 0.4431373, b: 0.4666667, a: 1}
-    - _FilterRange: {r: 0, g: 0.14, b: 2.54, a: 0}
+    - _FilterRange: {r: 0, g: 0.61, b: 0.62, a: 0}
     - _HSVFilter: {r: 0, g: 0.54, b: 0.5, a: 0}
-    - _SmoothRange: {r: 0, g: 0.03, b: 0, a: 0}
+    - _SmoothRange: {r: 0, g: 0.09, b: 0, a: 0}
     - _Smoothstep: {r: 0, g: 0.03, b: 0, a: 0}
-    - _TargetHSV: {r: 0, g: 0.02, b: 0.63, a: 0}
+    - _TargetHSV: {r: 0, g: -0.04, b: 0.63, a: 0}
     - c: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
