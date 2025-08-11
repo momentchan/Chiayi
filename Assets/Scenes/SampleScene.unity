@@ -278,10 +278,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 849623438}
-  - {fileID: 1982628857}
   - {fileID: 1725004008}
   - {fileID: 670159972}
-  - {fileID: 994879163}
   - {fileID: 1243293203}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -297,7 +295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff51bf65d9172ac4ab3b1793fd2e58b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _effectType: 3
+  _effectType: 4
   _sourceTex: {fileID: 2800000, guid: cfa0e314487fa6a4aadc1289caa88d19, type: 3}
   _output: {fileID: 8400000, guid: d5eb1b53d1d1db44297266bbb5e147ca, type: 2}
   _maskSetting:
@@ -311,16 +309,25 @@ MonoBehaviour:
     mat: {fileID: 2100000, guid: 8b42b0f6dae856d42a2a71484b05b1a5, type: 2}
     threshold: 0.3
     softness: 0.03
-    gain: 0.98
-    strength: 1
+    gain: 1.37
+    strength: 2.05
   _shiftSetting:
     mat: {fileID: 2100000, guid: 8a368949531423b4bad126db22f98306, type: 2}
-    steps: 10
-    strength: 0.2
+    steps: 10.06
+    strength: 0.14
     maxSpan: 0.05
+  _saturationMaskSetting:
+    mat: {fileID: 2100000, guid: 2e89223a27605dd42aff60aa8d893a5c, type: 2}
+    smoothRange: {x: 0.48, y: 0.54}
+    blurParams:
+      filter: {fileID: 1243293204}
+      iterations: 1
+      lod: 2
+      step: 11.4
   _compositeSetting:
     mat: {fileID: 2100000, guid: fe6c19652600e7b449545f474713ede0, type: 2}
-    strength: 0.2
+    glowStrength: 1.82
+    noiseOffset: 0.0118
 --- !u!1 &670159971
 GameObject:
   m_ObjectHideFlags: 0
@@ -506,56 +513,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 477496434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &994879162
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 994879163}
-  - component: {fileID: 994879164}
-  m_Layer: 0
-  m_Name: EdgeBlur
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &994879163
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 994879162}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 477496434}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &994879164
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 994879162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0ff94e8d20b33d46845cb8d63c5ed3f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  src: {fileID: 8600000, guid: 10e61b4806594ba48b487c2c3f9f8dbd, type: 2}
-  dst: {fileID: 8400000, guid: 1c68f34fa05f0bc44bc33c4641aa132a, type: 2}
-  shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
-  nIterations: 0
-  lod: 1
-  step: 1
 --- !u!1 &1085179720
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,9 +610,9 @@ MonoBehaviour:
   src: {fileID: 8600000, guid: be11aba4ef720544c8c89f7429ca29dd, type: 2}
   dst: {fileID: 8400000, guid: 9671f360248462740b34c51bb778ee10, type: 2}
   shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
-  nIterations: 11
-  lod: 1
-  step: 38.5
+  nIterations: 1
+  lod: 2
+  step: 11.4
 --- !u!1 &1453895122
 GameObject:
   m_ObjectHideFlags: 0
@@ -787,37 +744,6 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 477496434}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1982628856
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1982628857}
-  m_Layer: 0
-  m_Name: Edge
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1982628857
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1982628856}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -68,8 +68,8 @@ Material:
     - _QueueOffset: 0
     - _Sigma: 0.01
     - _StepSize: 0.11
-    - _Steps: 10
-    - _Strength: 0.2
+    - _Steps: 10.06
+    - _Strength: 0.14
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

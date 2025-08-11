@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using mj.gist;
 
 namespace Chiyi
 {
@@ -19,6 +20,9 @@ namespace Chiyi
         [Header("Shift")]
         [SerializeField] private ShiftSetting _shiftSetting;
 
+        [Header("Saturation Mask")]
+        [SerializeField] private SaturationMaskSetting _saturationMaskSetting;
+
         [Header("Composite")]
         [SerializeField] private CompositeSetting _compositeSetting;
 
@@ -37,6 +41,9 @@ namespace Chiyi
             // shift
             _shiftSetting.Update();
 
+            // saturation mask
+            _saturationMaskSetting.Update();
+
             // composite
             _compositeSetting.Update();
 
@@ -50,6 +57,9 @@ namespace Chiyi
                     break;
                 case EffectType.Shift:
                     Graphics.Blit(_sourceTex, _output, _shiftSetting.mat);
+                    break;
+                case EffectType.SaturationMask:
+                    Graphics.Blit(_sourceTex, _output, _saturationMaskSetting.mat);
                     break;
                 case EffectType.Composite:
                     Graphics.Blit(_sourceTex, _output, _compositeSetting.mat);
@@ -93,6 +103,25 @@ namespace Chiyi
             }
         }
 
+        [System.Serializable]
+        public class SaturationMaskSetting
+        {
+            public Material mat;
+            public Vector2 smoothRange;
+            public BlurParams blurParams;
+
+
+            public void Update(){
+                if (mat == null) return;
+                mat.SetVector("_SmoothRange", smoothRange);
+
+                if (blurParams.filter == null) return;
+                blurParams.filter.nIterations = blurParams.iterations;
+                blurParams.filter.lod = blurParams.lod;
+                blurParams.filter.step = blurParams.step;
+            }
+        }
+
 
         [System.Serializable]
         public class ShiftSetting
@@ -114,16 +143,29 @@ namespace Chiyi
         public class CompositeSetting
         {
             public Material mat;
-            public float strength = 0.2f;
+            public float glowStrength = 0.2f;
+            [Range(0, 0.1f)] public float noiseOffset = 0.05f;
 
             public void Update(){
+                if (mat == null) return;
+                mat.SetFloat("_GlowStrength", glowStrength);
+                mat.SetFloat("_NoiseOffset", noiseOffset);
             }
+        }
+
+        [System.Serializable]
+        public class BlurParams{
+            public GaussianFilter filter;
+            public int iterations = 1;
+            public int lod = 1;
+            public float step = 1f;
         }
 
         public enum EffectType{
             Mask,
             Edge,
             Shift,
+            SaturationMask,
             Composite
         }
     }
