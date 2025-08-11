@@ -109,7 +109,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Blend: 1
-    - _GlowStrength: 5.68
+    - _GlowStrength: 0.39
     - _MODE: 7
     - _NoiseOffset: 0.0588
     - _NoiseTiling: 1000
