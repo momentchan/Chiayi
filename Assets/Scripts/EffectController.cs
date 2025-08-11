@@ -49,6 +49,9 @@ namespace Chiyi
 
 
             switch (_effectType){
+                case EffectType.Original:
+                    Graphics.Blit(_sourceTex, _output);
+                    break;
                 case EffectType.Mask:
                     Graphics.Blit(_sourceTex, _output, _maskSetting.mats[0]);
                     break;
@@ -107,12 +110,14 @@ namespace Chiyi
         public class SaturationMaskSetting
         {
             public Material mat;
+            public float strength = 0.2f;
             public Vector2 smoothRange;
             public BlurParams blurParams;
 
 
             public void Update(){
                 if (mat == null) return;
+                mat.SetFloat("_Strength", strength);
                 mat.SetVector("_SmoothRange", smoothRange);
 
                 if (blurParams.filter == null) return;
@@ -143,12 +148,10 @@ namespace Chiyi
         public class CompositeSetting
         {
             public Material mat;
-            public float glowStrength = 0.2f;
             [Range(0, 0.1f)] public float noiseOffset = 0.05f;
 
             public void Update(){
                 if (mat == null) return;
-                mat.SetFloat("_GlowStrength", glowStrength);
                 mat.SetFloat("_NoiseOffset", noiseOffset);
             }
         }
@@ -162,6 +165,7 @@ namespace Chiyi
         }
 
         public enum EffectType{
+            Original,
             Mask,
             Edge,
             Shift,

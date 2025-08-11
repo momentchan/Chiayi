@@ -63,13 +63,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Clamp: 0.57
+    - _Max: 0.43
     - _MaxSpan: 0.05
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Sigma: 0.01
     - _StepSize: 0.11
-    - _Steps: 10.06
-    - _Strength: 0.14
+    - _Steps: 10.12
+    - _Strength: 0.4
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

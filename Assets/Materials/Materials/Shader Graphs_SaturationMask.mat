@@ -42,6 +42,7 @@ Material:
     - _MODE: 0
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _Strength: 1.53
     m_Colors:
     - _FilterRange: {r: 0, g: 0, b: 0, a: 0}
     - _SmoothRange: {r: 0.48, g: 0.54, b: 0, a: 0}
