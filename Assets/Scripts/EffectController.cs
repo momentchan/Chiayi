@@ -10,6 +10,7 @@ namespace Chiyi
         [SerializeField] private EffectType _effectType;
         [SerializeField] private Texture2D _sourceTex;
         [SerializeField] private RenderTexture _output;
+        [SerializeField, Range(0, 1)] private float _ratio;
 
         [Header("Mask")]
         [SerializeField] private MaskSetting _maskSetting;
@@ -31,6 +32,7 @@ namespace Chiyi
         {
 
             Shader.SetGlobalTexture("_SourceTex", _sourceTex);
+            Shader.SetGlobalFloat("_GlobalRatio", _ratio);
 
             // mask
             _maskSetting.Update();
@@ -153,10 +155,12 @@ namespace Chiyi
         {
             public Material mat;
             [Range(0, 0.1f)] public float noiseOffset = 0.05f;
+            public Vector4 fbmParams = new Vector4(1,1,1,1);
 
             public void Update(){
                 if (mat == null) return;
                 mat.SetFloat("_NoiseOffset", noiseOffset);
+                mat.SetVector("_FbmParams", fbmParams);
             }
         }
 
