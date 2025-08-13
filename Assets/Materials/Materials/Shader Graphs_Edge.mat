@@ -42,11 +42,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Gain: 1.17
+    - _Gain: 1.37
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Softness: 0.03
-    - _Strength: 2.38
+    - _Strength: 2.05
     - _Threshold: 0.3
     m_Colors: []
   m_BuildTextureStacks: []

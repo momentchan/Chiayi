@@ -65,13 +65,15 @@ Material:
     m_Floats:
     - _Clamp: 0.57
     - _Max: 0.43
-    - _MaxSpan: 0.05
+    - _MaxSpan: 0.09
+    - _Power: 2.28
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Sigma: 0.01
     - _StepSize: 0.11
-    - _Steps: 10.12
-    - _Strength: 0.4
-    m_Colors: []
+    - _Steps: 10.02
+    - _Strength: 0.3
+    m_Colors:
+    - _HighlightParams: {r: 0.15, g: -1.05, b: 9.7, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
