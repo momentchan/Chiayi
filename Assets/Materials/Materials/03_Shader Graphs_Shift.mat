@@ -66,15 +66,26 @@ Material:
     - _Clamp: 0.57
     - _Max: 0.43
     - _MaxSpan: 0.17
+    - _MaxSpan1: 0.17
+    - _MaxSpan2: 0.17
     - _Power: 1
+    - _Power1: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Sigma: 0.084
+    - _Sigma1: 0.13
+    - _Sigma2: 0.323
     - _StepSize: 0.11
     - _Steps: 12.4
+    - _Steps1: 5.03
+    - _Steps2: 100
     - _Strength: 0.18
+    - _Strength1: 0.21
+    - _Strength2: 0.021
     m_Colors:
     - _HighlightParams: {r: -0.26, g: -0.19, b: 12.08, a: 1}
     - _Wave: {r: 0.4, g: 6.98, b: 0, a: 0}
+    - _Wave1: {r: 0.4, g: 6, b: 0, a: 0}
+    - _Wave2: {r: 0.4, g: 6.02, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

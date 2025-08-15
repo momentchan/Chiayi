@@ -132,7 +132,7 @@ Material:
     - _ShiftStrength: 0.13
     - _Test: 0
     m_Colors:
-    - _Color: {r: 0.49803922, g: 0.5718429, b: 0.7411765, a: 0}
+    - _Color: {r: 0.49803922, g: 0.6148686, b: 0.7411765, a: 0}
     - _Distortion: {r: 5, g: 0.005, b: 0.04, a: 0}
     - _FBM: {r: 5, g: 0, b: 0, a: 0}
     - _FbmParams: {r: 3, g: 0.02, b: 1, a: 1}

@@ -134,21 +134,31 @@ namespace Chiyi
         public class ShiftSetting
         {
             public Material mat;
-            public float steps = 10;
-            public float strength = 0.2f;
-            public float maxSpan = 0.05f;
-            public float power = 1f;
-            [Range(0, 1f)] public float sigma = 0.01f;
-            public Vector4 highlightParams = new Vector4(0.45f, 0.75f, 1.2f, 1f);
+            public ShiftParams shiftParams1;
+            public ShiftParams shiftParams2;
 
             public void Update(){
                 if (mat == null) return;
-                mat.SetFloat("_Steps", steps);
-                mat.SetFloat("_Strength", strength);
-                mat.SetFloat("_MaxSpan", maxSpan);
-                mat.SetFloat("_Power", power);
-                mat.SetFloat("_Sigma", sigma);
-                mat.SetVector("_HighlightParams", highlightParams);
+                shiftParams1.Update(mat, 1);
+                shiftParams2.Update(mat, 2);
+            }
+
+            [System.Serializable]
+            public class ShiftParams{
+                public bool enable;
+                public float steps;
+                public float maxSpan;
+                [Range(0, 1f)]public float strength;
+                [Range(0, 1f)] public float sigma;
+                public Vector2 wave;
+
+                public void Update(Material mat, int index){
+                    mat.SetFloat($"_Steps{index}", steps);
+                    mat.SetFloat($"_Strength{index}", enable? strength : 0);
+                    mat.SetFloat($"_MaxSpan{index}", maxSpan);
+                    mat.SetFloat($"_Sigma{index}", sigma);
+                    mat.SetVector($"_Wave{index}", wave);
+                }
             }
         }
 

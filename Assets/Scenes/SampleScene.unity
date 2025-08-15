@@ -314,12 +314,20 @@ MonoBehaviour:
     strength: 0
   _shiftSetting:
     mat: {fileID: 2100000, guid: 8a368949531423b4bad126db22f98306, type: 2}
-    steps: 12.4
-    strength: 0.18
-    maxSpan: 0.17
-    power: 1
-    sigma: 0.084
-    highlightParams: {x: -0.26, y: -0.19, z: 12.08, w: 1}
+    shiftParams1:
+      enable: 1
+      steps: 5.03
+      maxSpan: 0.17
+      strength: 0.21
+      sigma: 0.13
+      wave: {x: 0.4, y: 6}
+    shiftParams2:
+      enable: 1
+      steps: 100
+      maxSpan: 0.17
+      strength: 0.021
+      sigma: 0.323
+      wave: {x: 0.4, y: 6.02}
   _saturationMaskSetting:
     mat: {fileID: 2100000, guid: 2e89223a27605dd42aff60aa8d893a5c, type: 2}
     strength: 4.56
