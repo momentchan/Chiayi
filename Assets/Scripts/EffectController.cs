@@ -138,6 +138,7 @@ namespace Chiyi
             public float strength = 0.2f;
             public float maxSpan = 0.05f;
             public float power = 1f;
+            [Range(0, 1f)] public float sigma = 0.01f;
             public Vector4 highlightParams = new Vector4(0.45f, 0.75f, 1.2f, 1f);
 
             public void Update(){
@@ -146,6 +147,7 @@ namespace Chiyi
                 mat.SetFloat("_Strength", strength);
                 mat.SetFloat("_MaxSpan", maxSpan);
                 mat.SetFloat("_Power", power);
+                mat.SetFloat("_Sigma", sigma);
                 mat.SetVector("_HighlightParams", highlightParams);
             }
         }

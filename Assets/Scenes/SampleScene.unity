@@ -296,41 +296,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _effectType: 5
-  _sourceTex: {fileID: 2800000, guid: cfa0e314487fa6a4aadc1289caa88d19, type: 3}
+  _sourceTex: {fileID: 2800000, guid: 8a3ed870321499d47abb296894d51ca9, type: 3}
   _output: {fileID: 8400000, guid: d5eb1b53d1d1db44297266bbb5e147ca, type: 2}
   _ratio: 1
   _maskSetting:
     mats:
     - {fileID: 2100000, guid: 0948e4dd2be246f45a755c1342904f23, type: 2}
     - {fileID: 2100000, guid: 5050cc542a5de994aabca5013d4d33d2, type: 2}
-    targetHSV: {x: 0, y: -0.04, z: 0.63}
-    filterRange: {x: 0, y: 0.61, z: 0.62}
-    smoothRange: {x: 0, y: 0.04}
+    targetHSV: {x: 0, y: 0, z: 0}
+    filterRange: {x: 0, y: 0.04, z: 0.62}
+    smoothRange: {x: 0, y: 0.1}
   _edgeSetting:
     mat: {fileID: 2100000, guid: 8b42b0f6dae856d42a2a71484b05b1a5, type: 2}
-    threshold: 0.3
-    softness: 0.03
-    gain: 1.37
-    strength: 2.05
+    threshold: 0.38
+    softness: 0.68
+    gain: 2.7
+    strength: 0
   _shiftSetting:
     mat: {fileID: 2100000, guid: 8a368949531423b4bad126db22f98306, type: 2}
-    steps: 10.02
-    strength: 0.3
-    maxSpan: 0.09
-    power: 2.28
-    highlightParams: {x: 0.15, y: -1.05, z: 9.7, w: 1}
+    steps: 12.4
+    strength: 0.18
+    maxSpan: 0.17
+    power: 1
+    sigma: 0.084
+    highlightParams: {x: -0.26, y: -0.19, z: 12.08, w: 1}
   _saturationMaskSetting:
     mat: {fileID: 2100000, guid: 2e89223a27605dd42aff60aa8d893a5c, type: 2}
-    strength: 2.85
-    smoothRange: {x: 0.48, y: 0.54}
+    strength: 4.56
+    smoothRange: {x: 0.62, y: 1.22}
     blurParams:
       filter: {fileID: 1243293204}
-      iterations: 1
+      iterations: 7
       lod: 2
-      step: 11.4
+      step: 7.04
   _compositeSetting:
     mat: {fileID: 2100000, guid: fe6c19652600e7b449545f474713ede0, type: 2}
-    noiseOffset: 0.0252
+    noiseOffset: 0.1
     fbmParams: {x: 3, y: 0.02, z: 1, w: 1}
 --- !u!1 &600959744
 GameObject:
@@ -626,8 +627,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1.6, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.7777779, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 477496434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -678,9 +679,9 @@ MonoBehaviour:
   src: {fileID: 8600000, guid: be11aba4ef720544c8c89f7429ca29dd, type: 2}
   dst: {fileID: 8400000, guid: 9671f360248462740b34c51bb778ee10, type: 2}
   shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
-  nIterations: 1
+  nIterations: 7
   lod: 2
-  step: 11.4
+  step: 7.04
 --- !u!1 &1725004006
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,9 +714,9 @@ MonoBehaviour:
   src: {fileID: 8600000, guid: d4491ef2aaeea704fa207a95a6eb577c, type: 2}
   dst: {fileID: 8400000, guid: 559e7062e86257f40b9e7180ba0f6349, type: 2}
   shader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
-  nIterations: 2
+  nIterations: 8
   lod: 2
-  step: 17.81
+  step: 20
 --- !u!4 &1725004008
 Transform:
   m_ObjectHideFlags: 0

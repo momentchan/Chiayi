@@ -42,7 +42,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Source:
-        m_Texture: {fileID: 2800000, guid: cfa0e314487fa6a4aadc1289caa88d19, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8a3ed870321499d47abb296894d51ca9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TextureSize_11a12601641a4b1385675b2a8eee0551_Texture_1_Texture2D:
@@ -65,15 +65,16 @@ Material:
     m_Floats:
     - _Clamp: 0.57
     - _Max: 0.43
-    - _MaxSpan: 0.09
-    - _Power: 2.28
+    - _MaxSpan: 0.17
+    - _Power: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Sigma: 0.01
+    - _Sigma: 0.084
     - _StepSize: 0.11
-    - _Steps: 10.02
-    - _Strength: 0.3
+    - _Steps: 12.4
+    - _Strength: 0.18
     m_Colors:
-    - _HighlightParams: {r: 0.15, g: -1.05, b: 9.7, a: 1}
+    - _HighlightParams: {r: -0.26, g: -0.19, b: 12.08, a: 1}
+    - _Wave: {r: 0.4, g: 6.98, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

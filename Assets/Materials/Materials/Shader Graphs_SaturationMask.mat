@@ -42,10 +42,10 @@ Material:
     - _MODE: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Strength: 2.85
+    - _Strength: 4.56
     m_Colors:
     - _FilterRange: {r: 0, g: 0, b: 0, a: 0}
-    - _SmoothRange: {r: 0.48, g: 0.54, b: 0, a: 0}
+    - _SmoothRange: {r: 0.62, g: 1.22, b: 0, a: 0}
     - _TargetHSV: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
