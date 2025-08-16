@@ -148,7 +148,8 @@ namespace Chiyi
                 public bool enable;
                 public float steps;
                 public float maxSpan;
-                [Range(0, 1f)]public float strength;
+                [Range(0, 1f)] public float randomness ;
+                [Range(0, 1f)] public float strength;
                 [Range(0, 1f)] public float sigma;
                 public Vector2 wave;
 
@@ -157,6 +158,7 @@ namespace Chiyi
                     mat.SetFloat($"_Strength{index}", enable? strength : 0);
                     mat.SetFloat($"_MaxSpan{index}", maxSpan);
                     mat.SetFloat($"_Sigma{index}", sigma);
+                    mat.SetFloat($"_Randomness{index}", randomness);
                     mat.SetVector($"_Wave{index}", wave);
                 }
             }

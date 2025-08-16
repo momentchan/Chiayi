@@ -318,6 +318,7 @@ MonoBehaviour:
       enable: 1
       steps: 5.03
       maxSpan: 0.17
+      randomness: 0.568
       strength: 0.21
       sigma: 0.13
       wave: {x: 0.4, y: 6}
@@ -325,6 +326,7 @@ MonoBehaviour:
       enable: 1
       steps: 100
       maxSpan: 0.17
+      randomness: 0
       strength: 0.021
       sigma: 0.323
       wave: {x: 0.4, y: 6.02}

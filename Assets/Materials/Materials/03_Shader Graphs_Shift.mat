@@ -72,6 +72,8 @@ Material:
     - _Power1: 1
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _Randomness1: 0.568
+    - _Randomness2: 0
     - _Sigma: 0.084
     - _Sigma1: 0.13
     - _Sigma2: 0.323
