@@ -1,38 +1,46 @@
 using System.Collections.Generic;
-using UnityEngine;
 using mj.gist;
+using UnityEngine;
 
 namespace Chiyi
 {
     [ExecuteInEditMode]
-    public class EffectController : MonoBehaviour
+    public class EffectController : MonoBehaviour, ISource
     {
-        [SerializeField] private EffectType _effectType;
-        [SerializeField] private Texture2D _sourceTex;
-        [SerializeField] private RenderTexture _output;
-        [SerializeField, Range(0, 1)] private float _ratio;
+        [SerializeField]
+        private EffectType _effectType;
+
+        [SerializeField]
+        private RenderTexture _output;
 
         [Header("Mask")]
-        [SerializeField] private MaskSetting _maskSetting;
+        [SerializeField]
+        private MaskSetting _maskSetting;
 
         [Header("Edge")]
-        [SerializeField] private EdgeSetting _edgeSetting;
+        [SerializeField]
+        private EdgeSetting _edgeSetting;
 
         [Header("Shift")]
-        [SerializeField] private ShiftSetting _shiftSetting;
+        [SerializeField]
+        private ShiftSetting _shiftSetting;
 
         [Header("Saturation Mask")]
-        [SerializeField] private SaturationMaskSetting _saturationMaskSetting;
+        [SerializeField]
+        private SaturationMaskSetting _saturationMaskSetting;
 
         [Header("Composite")]
-        [SerializeField] private CompositeSetting _compositeSetting;
+        [SerializeField]
+        private CompositeSetting _compositeSetting;
 
+        public Texture2D SourceTexture { get; set; }
+
+        public float Ratio { get; set; }
 
         void Update()
         {
-
-            Shader.SetGlobalTexture("_SourceTex", _sourceTex);
-            Shader.SetGlobalFloat("_GlobalRatio", _ratio);
+            Shader.SetGlobalTexture("_SourceTex", SourceTexture);
+            Shader.SetGlobalFloat("_GlobalRatio", Ratio);
 
             // mask
             _maskSetting.Update();
@@ -49,25 +57,25 @@ namespace Chiyi
             // composite
             _compositeSetting.Update();
 
-
-            switch (_effectType){
+            switch (_effectType)
+            {
                 case EffectType.Original:
-                    Graphics.Blit(_sourceTex, _output);
+                    Graphics.Blit(SourceTexture, _output);
                     break;
                 case EffectType.Mask:
-                    Graphics.Blit(_sourceTex, _output, _maskSetting.mats[0]);
+                    Graphics.Blit(SourceTexture, _output, _maskSetting.mats[0]);
                     break;
                 case EffectType.Edge:
-                    Graphics.Blit(_sourceTex, _output, _edgeSetting.mat);
+                    Graphics.Blit(SourceTexture, _output, _edgeSetting.mat);
                     break;
                 case EffectType.Shift:
-                    Graphics.Blit(_sourceTex, _output, _shiftSetting.mat);
+                    Graphics.Blit(SourceTexture, _output, _shiftSetting.mat);
                     break;
                 case EffectType.SaturationMask:
-                    Graphics.Blit(_sourceTex, _output, _saturationMaskSetting.mat);
+                    Graphics.Blit(SourceTexture, _output, _saturationMaskSetting.mat);
                     break;
                 case EffectType.Composite:
-                    Graphics.Blit(_sourceTex, _output, _compositeSetting.mat);
+                    Graphics.Blit(SourceTexture, _output, _compositeSetting.mat);
                     break;
             }
         }
@@ -80,9 +88,12 @@ namespace Chiyi
             public Vector3 filterRange;
             public Vector2 smoothRange;
 
-            public void Update(){
-                foreach (var m in mats){
-                    if (m == null) continue;
+            public void Update()
+            {
+                foreach (var m in mats)
+                {
+                    if (m == null)
+                        continue;
                     m.SetVector("_TargetHSV", targetHSV);
                     m.SetVector("_FilterRange", filterRange);
                     m.SetVector("_SmoothRange", smoothRange);
@@ -99,8 +110,10 @@ namespace Chiyi
             public float gain = 0.98f;
             public float strength = 1f;
 
-            public void Update(){
-                if (mat == null) return;
+            public void Update()
+            {
+                if (mat == null)
+                    return;
                 mat.SetFloat("_Threshold", threshold);
                 mat.SetFloat("_Softness", softness);
                 mat.SetFloat("_Gain", gain);
@@ -116,19 +129,20 @@ namespace Chiyi
             public Vector2 smoothRange;
             public BlurParams blurParams;
 
-
-            public void Update(){
-                if (mat == null) return;
+            public void Update()
+            {
+                if (mat == null)
+                    return;
                 mat.SetFloat("_Strength", strength);
                 mat.SetVector("_SmoothRange", smoothRange);
 
-                if (blurParams.filter == null) return;
+                if (blurParams.filter == null)
+                    return;
                 blurParams.filter.nIterations = blurParams.iterations;
                 blurParams.filter.lod = blurParams.lod;
                 blurParams.filter.step = blurParams.step;
             }
         }
-
 
         [System.Serializable]
         public class ShiftSetting
@@ -137,25 +151,35 @@ namespace Chiyi
             public ShiftParams shiftParams1;
             public ShiftParams shiftParams2;
 
-            public void Update(){
-                if (mat == null) return;
+            public void Update()
+            {
+                if (mat == null)
+                    return;
                 shiftParams1.Update(mat, 1);
                 shiftParams2.Update(mat, 2);
             }
 
             [System.Serializable]
-            public class ShiftParams{
+            public class ShiftParams
+            {
                 public bool enable;
                 public float steps;
                 public float maxSpan;
-                [Range(0, 1f)] public float randomness ;
-                [Range(0, 1f)] public float strength;
-                [Range(0, 1f)] public float sigma;
+
+                [Range(0, 1f)]
+                public float randomness;
+
+                [Range(0, 1f)]
+                public float strength;
+
+                [Range(0, 1f)]
+                public float sigma;
                 public Vector2 wave;
 
-                public void Update(Material mat, int index){
+                public void Update(Material mat, int index)
+                {
                     mat.SetFloat($"_Steps{index}", steps);
-                    mat.SetFloat($"_Strength{index}", enable? strength : 0);
+                    mat.SetFloat($"_Strength{index}", enable ? strength : 0);
                     mat.SetFloat($"_MaxSpan{index}", maxSpan);
                     mat.SetFloat($"_Sigma{index}", sigma);
                     mat.SetFloat($"_Randomness{index}", randomness);
@@ -168,31 +192,37 @@ namespace Chiyi
         public class CompositeSetting
         {
             public Material mat;
-            [Range(0, 0.1f)] public float noiseOffset = 0.05f;
-            public Vector4 fbmParams = new Vector4(1,1,1,1);
 
-            public void Update(){
-                if (mat == null) return;
+            [Range(0, 0.1f)]
+            public float noiseOffset = 0.05f;
+            public Vector4 fbmParams = new Vector4(1, 1, 1, 1);
+
+            public void Update()
+            {
+                if (mat == null)
+                    return;
                 mat.SetFloat("_NoiseOffset", noiseOffset);
                 mat.SetVector("_FbmParams", fbmParams);
             }
         }
 
         [System.Serializable]
-        public class BlurParams{
+        public class BlurParams
+        {
             public GaussianFilter filter;
             public int iterations = 1;
             public int lod = 1;
             public float step = 1f;
         }
 
-        public enum EffectType{
+        public enum EffectType
+        {
             Original,
             Mask,
             Edge,
             Shift,
             SaturationMask,
-            Composite
+            Composite,
         }
     }
 }
