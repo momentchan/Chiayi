@@ -75,14 +75,14 @@ Material:
     - _Randomness1: 0.568
     - _Randomness2: 0
     - _Sigma: 0.084
-    - _Sigma1: 0.13
+    - _Sigma1: 0.097
     - _Sigma2: 0.323
     - _StepSize: 0.11
     - _Steps: 12.4
-    - _Steps1: 5.03
+    - _Steps1: 3.71
     - _Steps2: 100
     - _Strength: 0.18
-    - _Strength1: 0.21
+    - _Strength1: 0.432
     - _Strength2: 0.021
     m_Colors:
     - _HighlightParams: {r: -0.26, g: -0.19, b: 12.08, a: 1}

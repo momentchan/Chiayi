@@ -1,0 +1,33 @@
+#pragma kernel ExtractUV
+
+Texture2D<float4> _Tex;   
+int2  _Size;              
+float _Epsilon;           
+
+AppendStructuredBuffer<float2> _OutUV;     
+
+inline bool IsNonZero(float3 rgb, float eps)
+{
+    return max(rgb.r, max(rgb.g, rgb.b)) > eps;
+}
+
+inline float3 FetchRGB(uint2 pix)
+{
+    float4 rgba = _Tex.Load(int3(pix, 0));
+    return rgba.rgb;
+}
+
+[numthreads(8, 8, 1)]
+void ExtractUV(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Size.x || id.y >= (uint)_Size.y) return;
+
+    uint2 pix = id.xy;
+    float2 uv  = (float2(pix) + 0.5) / float2(_Size);
+    float3 rgb = FetchRGB(pix);
+
+    if (IsNonZero(rgb, _Epsilon))
+    {
+        _OutUV.Append(uv);
+    }
+}
