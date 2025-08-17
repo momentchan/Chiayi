@@ -52,9 +52,6 @@
             "m_Id": "4af41f0abe18458d9049d2573bc44376"
         },
         {
-            "m_Id": "e2defde52cfa4bd7a46d2aa2869b16c2"
-        },
-        {
             "m_Id": "14986d9ebec0449eab42b9c849622045"
         },
         {
@@ -194,20 +191,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "54cafb01553e462babca2eb028413357"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "8a7c5d73ce0f44f393ad3e364083df19"
-                },
-                "m_SlotId": 1
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "8a7c5d73ce0f44f393ad3e364083df19"
                 },
                 "m_SlotId": 2
@@ -301,9 +284,6 @@
         "m_Blocks": [
             {
                 "m_Id": "1d47177964fe408dbb903b77b8319da3"
-            },
-            {
-                "m_Id": "e2defde52cfa4bd7a46d2aa2869b16c2"
             }
         ]
     },
@@ -322,9 +302,6 @@
     },
     "m_SubDatas": [],
     "m_ActiveTargets": [
-        {
-            "m_Id": "39293191de58416d9a3b02dc8163c1b7"
-        },
         {
             "m_Id": "025d03f1876946efaf5afe52ca6ebdfa"
         }
@@ -797,31 +774,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "33de6f30c8d3421289d1f4d07af40b89",
-    "m_Id": 0,
-    "m_DisplayName": "Alpha",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Alpha",
-    "m_StageCapability": 2,
-    "m_Value": 1.0,
-    "m_DefaultValue": 1.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.Rendering.CustomRenderTexture.ShaderGraph.CustomRenderTextureTarget",
-    "m_ObjectId": "39293191de58416d9a3b02dc8163c1b7",
-    "m_ActiveSubTarget": {
-        "m_Id": "5fc480bb1fa545b2995830eda09812e2"
-    },
-    "m_CustomEditorGUI": ""
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "3c35326ec2914497a636e8c088d19811",
     "m_Id": 1,
@@ -1103,10 +1055,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 214.5874786376953,
-            "y": -389.5908508300781,
-            "width": 0.0,
-            "height": 0.0
+            "x": 133.33334350585938,
+            "y": -231.99998474121095,
+            "width": 126.0,
+            "height": 36.0
         }
     },
     "m_Slots": [
@@ -1188,12 +1140,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.Rendering.CustomRenderTexture.ShaderGraph.CustomTextureSubTarget",
-    "m_ObjectId": "5fc480bb1fa545b2995830eda09812e2"
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
     "m_ObjectId": "61af96dda0e449f7a009cd5b5d7d2b30",
@@ -1247,7 +1193,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "e00": 2.0,
+        "e00": 1.0,
         "e01": 2.0,
         "e02": 2.0,
         "e03": 2.0,
@@ -1930,40 +1876,6 @@
     "m_ShaderOutputName": "Sampler",
     "m_StageCapability": 3,
     "m_BareResource": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "e2defde52cfa4bd7a46d2aa2869b16c2",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.Alpha",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "33de6f30c8d3421289d1f4d07af40b89"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.Alpha"
 }
 
 {

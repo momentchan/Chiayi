@@ -157,7 +157,8 @@ namespace Chiyi
             _compositeSetting.mat.SetTexture("_SourceTex", SourceTexture);
             _compositeSetting.mat.SetTexture("_EdgeTex", edge);
             _compositeSetting.mat.SetTexture("_ShiftTex", shift);
-            _compositeSetting.mat.SetTexture("_SaturationTex", saturation);
+            _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
+            _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
             _compositeSetting.Update(SourceTexture, composite);
 
             switch (_effectType)
@@ -213,7 +214,7 @@ namespace Chiyi
                 mat.SetVector("_SmoothRange", smoothRange);
                 mat.SetTexture("_SourceTex", source);
 
-                Graphics.Blit(source, target, mat);
+                Graphics.Blit(source, target, mat, 0);
             }
         }
 
@@ -236,7 +237,7 @@ namespace Chiyi
                 mat.SetFloat("_Strength", strength);
                 mat.SetTexture("_SourceTex", source);
 
-                Graphics.Blit(source, target, mat);
+                Graphics.Blit(source, target, mat, 0);
             }
         }
 
@@ -255,7 +256,7 @@ namespace Chiyi
                 shiftParams2.Update(mat, 2);
                 mat.SetTexture("_SourceTex", source);
 
-                Graphics.Blit(source, target, mat);
+                Graphics.Blit(source, target, mat, 0);
             }
 
             [System.Serializable]
@@ -302,13 +303,7 @@ namespace Chiyi
                 mat.SetVector("_SmoothRange", smoothRange);
                 mat.SetTexture("_SourceTex", source);
 
-                // if (blurParams.filter == null)
-                //     return;
-                // blurParams.filter.nIterations = blurParams.iterations;
-                // blurParams.filter.lod = blurParams.lod;
-                // blurParams.filter.step = blurParams.step;
-
-                Graphics.Blit(source, target, mat);
+                Graphics.Blit(source, target, mat, 0);
             }
         }
 
@@ -329,7 +324,7 @@ namespace Chiyi
                 mat.SetFloat("_NoiseOffset", noiseOffset);
                 mat.SetVector("_FbmParams", fbmParams);
 
-                Graphics.Blit(source, target, mat);
+                Graphics.Blit(source, target, mat, 0);
             }
         }
 
