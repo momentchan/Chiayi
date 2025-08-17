@@ -80,6 +80,14 @@ namespace Chiyi
             }
         }
 
+        public void SaveTexture()
+        {
+
+
+
+
+        }
+
         [System.Serializable]
         public class MaskSetting
         {
