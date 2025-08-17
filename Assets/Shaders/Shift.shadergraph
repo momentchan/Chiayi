@@ -1914,8 +1914,8 @@
     "m_ObjectId": "49e0cf87be114068af47caf569ce1d02",
     "m_Title": "Wave2",
     "m_Position": {
-        "x": -1274.0003662109375,
-        "y": 1135.33349609375
+        "x": -1274.0001220703125,
+        "y": 1135.3333740234375
     }
 }
 
@@ -3162,7 +3162,7 @@
     "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
-        "m_SerializedTexture": "{\"texture\":{\"fileID\":8600000,\"guid\":\"daf15c66bd932d64982877db6a2b4bd0\",\"type\":2}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "m_DefaultType": 0
@@ -3382,7 +3382,7 @@
     "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
-        "m_SerializedTexture": "{\"texture\":{\"fileID\":8600000,\"guid\":\"daf15c66bd932d64982877db6a2b4bd0\",\"type\":2}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "m_DefaultType": 0
@@ -3629,8 +3629,8 @@
     "m_ObjectId": "e5ad0ba068e4481fb437a0955d04de19",
     "m_Title": "Wave1",
     "m_Position": {
-        "x": -1286.6668701171875,
-        "y": -7.333305358886719
+        "x": -1286.6666259765625,
+        "y": -7.333343505859375
     }
 }
 
@@ -3989,13 +3989,13 @@
     "m_RefNameGeneratedByDisplayName": "SourceTex",
     "m_DefaultReferenceName": "_SourceTex",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
+    "overrideHLSLDeclaration": true,
+    "hlslDeclarationOverride": 2,
     "m_Hidden": false,
     "m_Value": {
         "m_SerializedTexture": "",

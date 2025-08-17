@@ -982,7 +982,7 @@
     "m_Title": "Bg Mask",
     "m_Position": {
         "x": -2044.6666259765625,
-        "y": 509.3333740234375
+        "y": 509.3336181640625
     }
 }
 
@@ -1238,13 +1238,13 @@
     "m_RefNameGeneratedByDisplayName": "SourceTex",
     "m_DefaultReferenceName": "_SourceTex",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
+    "overrideHLSLDeclaration": true,
+    "hlslDeclarationOverride": 2,
     "m_Hidden": false,
     "m_Value": {
         "m_SerializedTexture": "",
