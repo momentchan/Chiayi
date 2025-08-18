@@ -12,6 +12,11 @@ namespace Chiyi
         [SerializeField] private Vector2Int _textureSize = new Vector2Int(1920, 1080);
         [SerializeField] private RenderTextureFormat _textureFormat = RenderTextureFormat.ARGBFloat;
 
+        [Header("Effect Properties")]
+        [field: SerializeField] public Texture2D Source { get; set; }
+        [field: SerializeField] public Color BgColor { get; set; } = Color.black;
+        [field: SerializeField, Range(0f, 2f)] public float Ratio { get; set; } = 1f;
+
         #region RenderTextures
         // Cached render textures - lazily created
         private readonly Dictionary<string, RenderTexture> _renderTextures = new Dictionary<string, RenderTexture>();
@@ -27,6 +32,7 @@ namespace Chiyi
         private RenderTexture composite => GetOrCreateRenderTexture("composite");
         #endregion
 
+        #region Shaders and Materials
         [Header("Shaders")]
         [SerializeField] private Shader _blurShader;
         private Material _blurMat;
@@ -39,6 +45,7 @@ namespace Chiyi
                 return _blurMat;
             }
         }
+        #endregion
 
         [Header("Mask")]
         [SerializeField] private MaskSetting _maskSetting;
@@ -58,10 +65,8 @@ namespace Chiyi
         [SerializeField] private CompositeSetting _compositeSetting;
 
 
-        public Texture2D Source { get; set; }
-        public RenderTexture Output { get => output; }
-        public Color BgColor { get; set; }
-        public float Ratio { get; set; }
+        // IEffect interface implementation (Output only, others are auto-implemented above)
+        public RenderTexture Output => output;
 
         /// <summary>
         /// Get or create a render texture with the specified name
@@ -128,8 +133,8 @@ namespace Chiyi
                 return;
             }
 
-            // Set global ratio to all materials
-            SetRatioToAllMaterials();
+            // Set common parameters to all materials
+            SetCommonParametersToAllMaterials();
 
             // Process mask effect
             ProcessMaskEffect();
@@ -148,24 +153,32 @@ namespace Chiyi
         }
 
         /// <summary>
-        /// Set the ratio value to all effect materials
+        /// Set common parameters to all effect materials efficiently
         /// </summary>
-        private void SetRatioToAllMaterials()
+        private void SetCommonParametersToAllMaterials()
         {
-            if (_maskSetting?.mat != null)
-                _maskSetting.mat.SetFloat("_Ratio", Ratio);
-                
-            if (_edgeSetting?.mat != null)
-                _edgeSetting.mat.SetFloat("_Ratio", Ratio);
-                
-            if (_shiftSetting?.mat != null)
-                _shiftSetting.mat.SetFloat("_Ratio", Ratio);
-                
-            if (_saturationMaskSetting?.mat != null)
-                _saturationMaskSetting.mat.SetFloat("_Ratio", Ratio);
-                
-            if (_compositeSetting?.mat != null)
-                _compositeSetting.mat.SetFloat("_Ratio", Ratio);
+            // Cache commonly used shader property IDs for better performance
+            var ratioID = Shader.PropertyToID("_Ratio");
+            var bgColorID = Shader.PropertyToID("_BgColor");
+
+            // Set to all materials that exist
+            var materials = new Material[]
+            {
+                _maskSetting?.mat,
+                _edgeSetting?.mat,
+                _shiftSetting?.mat,
+                _saturationMaskSetting?.mat,
+                _compositeSetting?.mat
+            };
+
+            foreach (var mat in materials)
+            {
+                if (mat != null)
+                {
+                    mat.SetFloat(ratioID, Ratio);
+                    mat.SetColor(bgColorID, BgColor);
+                }
+            }
         }
 
         private void ProcessMaskEffect()
@@ -227,12 +240,12 @@ namespace Chiyi
             if (_compositeSetting?.mat != null)
             {
                 // Set all input textures for composite
-                _compositeSetting.mat.SetTexture("_SourceTex", Source);
-                _compositeSetting.mat.SetTexture("_EdgeTex", edge);
-                _compositeSetting.mat.SetTexture("_ShiftTex", shift);
-                _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
-                _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
-                _compositeSetting.mat.SetColor("_BgColor", BgColor);
+                var mat = _compositeSetting.mat;
+                mat.SetTexture("_SourceTex", Source);
+                mat.SetTexture("_EdgeTex", edge);
+                mat.SetTexture("_ShiftTex", shift);
+                mat.SetTexture("_MaskTex", maskBlur);
+                mat.SetTexture("_SaturationTex", saturationBlur);
 
                 _compositeSetting.Update(Source, composite);
             }
@@ -285,10 +298,18 @@ namespace Chiyi
         {
             if (output != null)
             {
-                string timestamp = System.DateTime.Now.ToString("yyMMdd_HHmmss");
-                string path = $"Assets/Resource/output_{timestamp}.png";
-                TextureIO.SaveRenderTextureToPNG(output, path);
-                Debug.Log($"Texture saved to: {path}", this);
+                try
+                {
+                    string timestamp = System.DateTime.Now.ToString("yyMMdd_HHmmss");
+                    string effectName = _effectType.ToString();
+                    string path = $"Assets/Resource/output_{effectName}_{timestamp}.png";
+                    TextureIO.SaveRenderTextureToPNG(output, path);
+                    Debug.Log($"Texture saved to: {path}", this);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"EffectController: Failed to save texture - {ex.Message}", this);
+                }
             }
             else
             {
@@ -296,25 +317,64 @@ namespace Chiyi
             }
         }
 
+        [ContextMenu("Validate Setup")]
+        public void ValidateSetup()
+        {
+            var issues = new System.Collections.Generic.List<string>();
+
+            // Check shader
+            if (_blurShader == null)
+                issues.Add("Blur shader is not assigned");
+
+            // Check materials
+            if (_maskSetting?.mat == null)
+                issues.Add("Mask material is not assigned");
+            if (_edgeSetting?.mat == null)
+                issues.Add("Edge material is not assigned");
+            if (_shiftSetting?.mat == null)
+                issues.Add("Shift material is not assigned");
+            if (_saturationMaskSetting?.mat == null)
+                issues.Add("Saturation mask material is not assigned");
+            if (_compositeSetting?.mat == null)
+                issues.Add("Composite material is not assigned");
+
+            if (issues.Count > 0)
+            {
+                Debug.LogWarning($"EffectController validation issues:\n- {string.Join("\n- ", issues)}", this);
+            }
+            else
+            {
+                Debug.Log("EffectController setup is valid!", this);
+            }
+        }
+
+        [ContextMenu("Create Instance Materials")]
         public void CreateInstanceMaterials()
         {
-            // Create instance materials to avoid sharing between controllers
-            if (_maskSetting?.mat != null)
-                _maskSetting.mat = new Material(_maskSetting.mat);
+            try
+            {
+                // Create instance materials to avoid sharing between controllers
+                if (_maskSetting?.mat != null)
+                    _maskSetting.mat = new Material(_maskSetting.mat);
 
-            if (_edgeSetting?.mat != null)
-                _edgeSetting.mat = new Material(_edgeSetting.mat);
+                if (_edgeSetting?.mat != null)
+                    _edgeSetting.mat = new Material(_edgeSetting.mat);
 
-            if (_shiftSetting?.mat != null)
-                _shiftSetting.mat = new Material(_shiftSetting.mat);
+                if (_shiftSetting?.mat != null)
+                    _shiftSetting.mat = new Material(_shiftSetting.mat);
 
-            if (_saturationMaskSetting?.mat != null)
-                _saturationMaskSetting.mat = new Material(_saturationMaskSetting.mat);
+                if (_saturationMaskSetting?.mat != null)
+                    _saturationMaskSetting.mat = new Material(_saturationMaskSetting.mat);
 
-            if (_compositeSetting?.mat != null)
-                _compositeSetting.mat = new Material(_compositeSetting.mat);
+                if (_compositeSetting?.mat != null)
+                    _compositeSetting.mat = new Material(_compositeSetting.mat);
 
-            Debug.Log("Instance materials created - this controller now has unique materials", this);
+                Debug.Log("Instance materials created - this controller now has unique materials", this);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"EffectController: Failed to create instance materials - {ex.Message}", this);
+            }
         }
 
         void OnDestroy()
@@ -332,22 +392,29 @@ namespace Chiyi
         /// </summary>
         private void CleanupResources()
         {
-            // Cleanup render textures
-            foreach (var kvp in _renderTextures)
+            try
             {
-                if (kvp.Value != null)
+                // Cleanup render textures
+                foreach (var kvp in _renderTextures)
                 {
-                    kvp.Value.Release();
-                    DestroyImmediate(kvp.Value);
+                    if (kvp.Value != null)
+                    {
+                        kvp.Value.Release();
+                        DestroyImmediate(kvp.Value);
+                    }
+                }
+                _renderTextures.Clear();
+
+                // Cleanup blur material
+                if (_blurMat != null)
+                {
+                    DestroyImmediate(_blurMat);
+                    _blurMat = null;
                 }
             }
-            _renderTextures.Clear();
-
-            // Cleanup blur material
-            if (_blurMat != null)
+            catch (System.Exception ex)
             {
-                DestroyImmediate(_blurMat);
-                _blurMat = null;
+                Debug.LogError($"EffectController: Error during cleanup - {ex.Message}", this);
             }
         }
 

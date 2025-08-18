@@ -10,217 +10,462 @@ namespace Chiyi
     [ExecuteInEditMode]
     public class Main : MonoBehaviour
     {
-        [Header("Output / Blend Material")]
-        [SerializeField] private Material _outputMat;
-
-        [Header("Optional Capture")]
-        [SerializeField] private RenderTexture _spoutTex;
+        [Header("Output Configuration")]
+        [SerializeField] private Material _outputMaterial;
+        [SerializeField] private RenderTexture _captureTexture;
         [SerializeField] private string _outputFolder = "C:/Chiayi/";
 
-        [Header("Blend Controls")]
-        [SerializeField, Range(0f, 1f)] private float _prevFloor = 0.2f; // final blend of Current
-        [SerializeField, Min(0f)] private float _fadeDuration = 0.8f;    // fade duration
-        [SerializeField] private AnimationCurve _ease = null; // 可為 null=線性
+        [Header("Transition Settings")]
+        [SerializeField, Range(0f, 1f)] private float _previousLayerOpacity = 0.2f;
+        [SerializeField, Min(0f)] private float _transitionDuration = 0.8f;
+        [SerializeField] private AnimationCurve _transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+        [Header("Effect Instances")]
+        [SerializeField] private List<EffectInstance> _effectInstances = new List<EffectInstance>();
+        
+        // State management
+        private int _currentEffectIndex = 0;
+        private Coroutine _transitionCoroutine;
+        
+        // Constants
+        private const int REQUIRED_EFFECT_COUNT = 3;
 
-        [Header("Internal (do not edit at runtime)")]
-        [SerializeField] private int _currentIndex = 0;                  // index of Current
-        [SerializeField] private List<EffectInstance> _effects = new List<EffectInstance>(); // 3 slots: Prev/Current/Next
-
-        private Coroutine _blendCo;
-
-        private int WrapIndex(int i)
+        #region Effect Instance Management
+        
+        /// <summary>
+        /// Safely wrap index within effect instances bounds
+        /// </summary>
+        private int WrapIndex(int index)
         {
-            int n = Mathf.Max(1, _effects.Count);
-            return (i % n + n) % n; // ensure non-negative
+            if (_effectInstances.Count == 0) return 0;
+            return ((index % _effectInstances.Count) + _effectInstances.Count) % _effectInstances.Count;
         }
+        
+        /// <summary>
+        /// Get the previous effect instance in the sequence
+        /// </summary>
+        private EffectInstance PreviousEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex - 1)] : null;
+        
+        /// <summary>
+        /// Get the current active effect instance
+        /// </summary>
+        private EffectInstance CurrentEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex)] : null;
+        
+        /// <summary>
+        /// Get the next effect instance in the sequence
+        /// </summary>
+        private EffectInstance NextEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex + 1)] : null;
+        
+        /// <summary>
+        /// Check if we have the minimum required effects for proper operation
+        /// </summary>
+        private bool IsValidEffectSetup() => _effectInstances != null && _effectInstances.Count >= REQUIRED_EFFECT_COUNT;
+        
+        #endregion
 
-        private EffectInstance Prev => _effects.Count >= 3 ? _effects[WrapIndex(_currentIndex - 1)] : null;
-        private EffectInstance Current => _effects.Count >= 3 ? _effects[WrapIndex(_currentIndex)] : null;
-        private EffectInstance Next => _effects.Count >= 3 ? _effects[WrapIndex(_currentIndex + 1)] : null;
 
-
-        public void OnReceivePath(OscPort.Capsule c)
+        #region Public API
+        
+        /// <summary>
+        /// Handle incoming OSC message with texture path
+        /// </summary>
+        public void OnReceivePath(OscPort.Capsule capsule)
         {
             try
             {
-                var msg = c.message;
-                var path = (string)msg.data[0];
-
-                TextureIO.LoadTextureFromFile(path, (tex) =>
+                var message = capsule.message;
+                if (message.data == null || message.data.Length == 0)
                 {
-                    Debug.Log("Loaded texture: " + path);
-                    BeginSwitch(tex);
-                });
+                    Debug.LogWarning("Main: Received empty OSC message");
+                    return;
+                }
+                
+                var texturePath = (string)message.data[0];
+                LoadAndSwitchTexture(texturePath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debug.LogException(e);
+                Debug.LogError($"Main: Error processing OSC message - {ex.Message}", this);
             }
         }
-
-        public void BeginSwitch(Texture2D newTex)
+        
+        /// <summary>
+        /// Load texture from file and initiate transition
+        /// </summary>
+        public void LoadAndSwitchTexture(string filePath)
         {
-            var next = Next;
-            if (next == null)
+            if (string.IsNullOrEmpty(filePath))
             {
-                Debug.LogWarning("Next slot is null.");
+                Debug.LogWarning("Main: Invalid file path provided", this);
+                return;
+            }
+            
+            TextureIO.LoadTextureFromFile(filePath, (loadedTexture) =>
+            {
+                if (loadedTexture != null)
+                {
+                    Debug.Log($"Main: Loaded texture from {filePath}", this);
+                    StartTransition(loadedTexture);
+                }
+                else
+                {
+                    Debug.LogError($"Main: Failed to load texture from {filePath}", this);
+                }
+            });
+        }
+        
+        /// <summary>
+        /// Begin transition to new texture
+        /// </summary>
+        public void StartTransition(Texture2D newTexture)
+        {
+            if (!IsValidEffectSetup())
+            {
+                Debug.LogWarning("Main: Cannot start transition - invalid effect setup", this);
+                return;
+            }
+            
+            var nextEffect = NextEffect;
+            if (nextEffect?.controller == null)
+            {
+                Debug.LogWarning("Main: Next effect or controller is null", this);
                 return;
             }
 
-            next.source = newTex;
-            if (next.controller != null)
-            {
-                next.controller.Source = newTex;
-            }
+            // Set up the next effect with new texture
+            nextEffect.source = newTexture;
+            nextEffect.controller.Source = newTexture;
 
-            if (_blendCo != null) StopCoroutine(_blendCo);
-            _blendCo = StartCoroutine(BlendEffect());
+            // Stop any existing transition and start new one
+            StopCurrentTransition();
+            _transitionCoroutine = StartCoroutine(TransitionCoroutine());
         }
-
-        //  coroutine: Prev → 0、Current → _prevFloor、Next → 1（smooth transition）
-
-        private IEnumerator BlendEffect()
+        
+        /// <summary>
+        /// Test method for manual transitions (bound to T key)
+        /// </summary>
+        [ContextMenu("Test Transition")]
+        public void TestTransition()
         {
-            // —— 1) 準備 Next，強制乾淨起點 —— //
-            if (Next != null)
+            if (IsValidEffectSetup())
             {
-                // 綁定新來源（BeginSwitch 時已經設好 source）
-                if (Next.controller != null)
-                {
-                    Next.controller.Source = Next.source;
-                    Next.controller.Ratio = 0f;   // 內部效果從 0 開始
-                }
+                StopCurrentTransition();
+                _transitionCoroutine = StartCoroutine(TransitionCoroutine());
+            }
+        }
+        
+        #endregion
 
-                Next.ratio = 0f;  // 外部合成：Next 的 ratio 從 0 開始
-                Next.blend = 1f;  // 外部合成：Next 立即全開（保持最大）
+        #region Transition System
+        
+        /// <summary>
+        /// Stop current transition if running
+        /// </summary>
+        private void StopCurrentTransition()
+        {
+            if (_transitionCoroutine != null)
+            {
+                StopCoroutine(_transitionCoroutine);
+                _transitionCoroutine = null;
+            }
+        }
+        
+        /// <summary>
+        /// Main transition coroutine: Previous → 0, Current → prevFloor, Next → 1
+        /// </summary>
+        private IEnumerator TransitionCoroutine()
+        {
+            // 1) Initialize next effect
+            var nextEffect = NextEffect;
+            if (nextEffect != null)
+            {
+                // Ensure next effect starts clean
+                if (nextEffect.controller != null)
+                {
+                    nextEffect.controller.Source = nextEffect.source;
+                    nextEffect.controller.Ratio = 0f;
+                }
+                
+                nextEffect.ratio = 0f;  // Internal effect starts at 0
+                nextEffect.blend = 1f;  // External blend at full (will be controlled by ratio)
             }
 
-            // 讓 Controller 有機會產出有效的 Output（避免第一幀黑圖/錯幀）
-            yield return null;                // 等一幀
-                                              // 也可更保險：yield return new WaitForEndOfFrame();
+            // 2) Allow one frame for controller to generate valid output
+            yield return null;
 
-            // —— 2) 讀取當下值作為「平滑銜接」起點 —— //
-            float startPrevBlend = Prev?.blend ?? 0f;
-            float startCurrentBlend = Current?.blend ?? 0f;
-            float startNextRatio = Next?.ratio ?? 0f; // 理論上是 0
-
-            // 目標
-            const float targetPrevBlend = 0f;
-            float targetCurrentBlend = _prevFloor;
-            const float targetNextRatio = 1f;
-
-            // —— 3) 漸變 —— //
-            float t = 0f;
-            while (t < _fadeDuration)
+            // 3) Record starting values for smooth interpolation
+            var startValues = new TransitionState
             {
-                t += Time.deltaTime;
-                float k = Mathf.Clamp01(t / Mathf.Max(0.0001f, _fadeDuration));
-                if (_ease != null) k = _ease.Evaluate(k);
+                PreviousBlend = PreviousEffect?.blend ?? 0f,
+                CurrentBlend = CurrentEffect?.blend ?? 0f,
+                NextRatio = NextEffect?.ratio ?? 0f
+            };
 
-                // Prev: blend → 0
-                if (Prev != null)
-                    Prev.blend = Mathf.Lerp(startPrevBlend, targetPrevBlend, k);
+            // 4) Define target values
+            var targetValues = new TransitionState
+            {
+                PreviousBlend = 0f,
+                CurrentBlend = _previousLayerOpacity,
+                NextRatio = 1f
+            };
 
-                // Current: blend → prevFloor
-                if (Current != null)
-                    Current.blend = Mathf.Lerp(startCurrentBlend, targetCurrentBlend, k);
+            // 5) Animate transition
+            yield return StartCoroutine(AnimateTransition(startValues, targetValues));
 
-                // Next: ratio 0→1（blend 保持 1 不動）
-                if (Next != null)
-                    Next.ratio = Mathf.Lerp(startNextRatio, targetNextRatio, k);
+            // 6) Finalize values and advance to next effect
+            FinalizeTransition(targetValues);
+        }
+        
+        /// <summary>
+        /// Animate the transition between start and target values
+        /// </summary>
+        private IEnumerator AnimateTransition(TransitionState startValues, TransitionState targetValues)
+        {
+            float elapsedTime = 0f;
+            
+            while (elapsedTime < _transitionDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float normalizedTime = Mathf.Clamp01(elapsedTime / Mathf.Max(0.0001f, _transitionDuration));
+                
+                // Apply easing curve if available
+                float easedTime = _transitionCurve != null ? _transitionCurve.Evaluate(normalizedTime) : normalizedTime;
 
-                // 可選：也把內部 Controller.Ratio 同步推（若你想連內部特效強度也一起變）
-                // if (Next?.controller != null) Next.controller.Ratio = Next.ratio;
+                // Interpolate all values
+                if (PreviousEffect != null)
+                    PreviousEffect.blend = Mathf.Lerp(startValues.PreviousBlend, targetValues.PreviousBlend, easedTime);
+
+                if (CurrentEffect != null)
+                    CurrentEffect.blend = Mathf.Lerp(startValues.CurrentBlend, targetValues.CurrentBlend, easedTime);
+
+                if (NextEffect != null)
+                    NextEffect.ratio = Mathf.Lerp(startValues.NextRatio, targetValues.NextRatio, easedTime);
 
                 yield return null;
             }
-
-            // —— 4) 收尾鎖定 —— //
-            if (Prev != null) Prev.blend = targetPrevBlend;
-            if (Current != null) Current.blend = targetCurrentBlend;
-            if (Next != null) Next.ratio = targetNextRatio;
-
-            // —— 5) 輪轉：Next → Current —— //
-            _currentIndex = WrapIndex(_currentIndex + 1);
-            _blendCo = null;
         }
-
-        private Texture SafeTex(EffectInstance inst)
+        
+        /// <summary>
+        /// Finalize transition by setting exact target values and advancing index
+        /// </summary>
+        private void FinalizeTransition(TransitionState targetValues)
         {
-            if (inst != null && inst.controller != null && inst.controller.Output != null)
-                return inst.controller.Output;
+            // Lock in final values
+            if (PreviousEffect != null) PreviousEffect.blend = targetValues.PreviousBlend;
+            if (CurrentEffect != null) CurrentEffect.blend = targetValues.CurrentBlend;
+            if (NextEffect != null) NextEffect.ratio = targetValues.NextRatio;
+
+            // Advance to next effect
+            _currentEffectIndex = WrapIndex(_currentEffectIndex + 1);
+            _transitionCoroutine = null;
+        }
+        
+        /// <summary>
+        /// Helper struct to hold transition state values
+        /// </summary>
+        private struct TransitionState
+        {
+            public float PreviousBlend;
+            public float CurrentBlend;
+            public float NextRatio;
+        }
+        
+        #endregion
+
+        #region Update and Rendering
+        
+        void Update()
+        {
+            if (!IsValidEffectSetup() || _outputMaterial == null)
+                return;
+
+            // Update all effect instances
+            UpdateEffectInstances();
+            
+            // Update output material with current textures and blend values
+            UpdateOutputMaterial();
+
+            // Handle debug input
+            HandleDebugInput();
+        }
+        
+        /// <summary>
+        /// Update all effect controller instances
+        /// </summary>
+        private void UpdateEffectInstances()
+        {
+            PreviousEffect?.UpdateController();
+            CurrentEffect?.UpdateController();
+            NextEffect?.UpdateController();
+        }
+        
+        /// <summary>
+        /// Update the output material with current textures and blend values
+        /// </summary>
+        private void UpdateOutputMaterial()
+        {
+            // Set textures
+            _outputMaterial.SetTexture("_Prev", GetSafeTexture(PreviousEffect));
+            _outputMaterial.SetTexture("_Current", GetSafeTexture(CurrentEffect));
+            _outputMaterial.SetTexture("_Next", GetSafeTexture(NextEffect));
+
+            // Set blend values
+            _outputMaterial.SetFloat("_PrevBlend", GetSafeBlendValue(PreviousEffect));
+            _outputMaterial.SetFloat("_CurrentBlend", GetSafeBlendValue(CurrentEffect));
+            _outputMaterial.SetFloat("_NextBlend", GetSafeBlendValue(NextEffect));
+        }
+        
+        /// <summary>
+        /// Handle debug keyboard input
+        /// </summary>
+        private void HandleDebugInput()
+        {
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                TestTransition();
+            }
+        }
+        
+        /// <summary>
+        /// Get texture from effect instance, with fallback to black texture
+        /// </summary>
+        private Texture GetSafeTexture(EffectInstance instance)
+        {
+            if (instance?.controller?.Output != null)
+                return instance.controller.Output;
             return Texture2D.blackTexture;
         }
 
-        // get safe blend value (0 if null)
-        private float SafeBlend(EffectInstance inst, float fallback = 0f)
+        /// <summary>
+        /// Get blend value from effect instance, with fallback to 0
+        /// </summary>
+        private float GetSafeBlendValue(EffectInstance instance, float fallback = 0f)
         {
-            return inst != null ? inst.blend : fallback;
+            return instance?.blend ?? fallback;
         }
+        
+        #endregion
 
-        // update every frame
-        private void Update()
+        #region Utility Methods
+        
+        /// <summary>
+        /// Save current capture texture to file
+        /// </summary>
+        private IEnumerator SaveCaptureTexture()
         {
-            if (_effects == null || _effects.Count < 3 || _outputMat == null) return;
-
-            // update EffectController
-            Prev?.Update();
-            Current?.Update();
-            Next?.Update();
-
-            // set texture
-            _outputMat.SetTexture("_Prev", SafeTex(Prev));
-            _outputMat.SetTexture("_Current", SafeTex(Current));
-            _outputMat.SetTexture("_Next", SafeTex(Next));
-
-            _outputMat.SetFloat("_PrevBlend", SafeBlend(Prev));
-            _outputMat.SetFloat("_CurrentBlend", SafeBlend(Current));
-            _outputMat.SetFloat("_NextBlend", SafeBlend(Next));
-
-            // test key: press T to trigger Blend (no new texture, just rotate blend)
-            if (Input.GetKeyDown(KeyCode.T))
+            yield return new WaitForSeconds(1f);
+            
+            if (_captureTexture == null)
             {
-                if (_blendCo != null) StopCoroutine(_blendCo);
-                _blendCo = StartCoroutine(BlendEffect());
+                Debug.LogWarning("Main: No capture texture assigned for saving", this);
+                yield break;
+            }
+
+            try
+            {
+                var timestamp = DateTime.Now.ToString("yyMMdd_HHmmss");
+                var filename = $"capture_{timestamp}.png";
+                var fullPath = Path.Combine(_outputFolder, filename);
+
+                // Ensure directory exists
+                Directory.CreateDirectory(_outputFolder);
+                
+                TextureIO.SaveRenderTextureToPNG(_captureTexture, fullPath);
+                Debug.Log($"Main: Saved capture to {fullPath}", this);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Main: Failed to save capture texture - {ex.Message}", this);
             }
         }
-
-        // optional: save current Spout RT
-        private IEnumerator SaveTexture()
+        
+        /// <summary>
+        /// Validate the current setup and log any issues
+        /// </summary>
+        [ContextMenu("Validate Setup")]
+        public void ValidateSetup()
         {
-            yield return new WaitForSeconds(1);
-            if (_spoutTex == null) yield break;
-
-            var timestamp = DateTime.Now.ToString("yyMMdd_HHmmss");
-            var filename = $"output_{timestamp}.png";
-            var fullPath = Path.Combine(_outputFolder, filename);
-
-            TextureIO.SaveRenderTextureToPNG(_spoutTex, fullPath);
-            Debug.Log($"Saved: {fullPath}");
+            var issues = new List<string>();
+            
+            if (_outputMaterial == null)
+                issues.Add("Output material is not assigned");
+                
+            if (_effectInstances == null || _effectInstances.Count < REQUIRED_EFFECT_COUNT)
+                issues.Add($"Need at least {REQUIRED_EFFECT_COUNT} effect instances");
+                
+            for (int i = 0; i < _effectInstances.Count; i++)
+            {
+                var effect = _effectInstances[i];
+                if (effect?.controller == null)
+                    issues.Add($"Effect instance {i} has no controller assigned");
+            }
+            
+            if (issues.Count > 0)
+            {
+                Debug.LogWarning($"Main setup issues:\n- {string.Join("\n- ", issues)}", this);
+            }
+            else
+            {
+                Debug.Log("Main setup is valid!", this);
+            }
         }
-
-        private void OnDestroy()
+        
+        void OnDestroy()
         {
-            if (_blendCo != null) { StopCoroutine(_blendCo); _blendCo = null; }
+            StopCurrentTransition();
         }
+        
+        #endregion
     }
 
+    /// <summary>
+    /// Represents a single effect instance with its controller and parameters
+    /// </summary>
     [Serializable]
     public class EffectInstance
     {
+        [Header("Effect Controller")]
         public EffectController controller;
+        
+        [Header("Source")]
         public Texture2D source;
-        [Range(0f, 1f)] public float ratio; // internal effect
-        [Range(0f, 1f)] public float blend; // external blend
-        public Color bgColor;
-
-        public void Update()
+        
+        [Header("Parameters")]
+        [Range(0f, 1f)] public float ratio = 1f;      // Internal effect intensity
+        [Range(0f, 1f)] public float blend = 1f;      // External blend amount
+        public Color bgColor = Color.black;            // Background color
+        
+        /// <summary>
+        /// Update the associated effect controller with current parameters
+        /// </summary>
+        public void UpdateController()
         {
-            if (controller == null) return;
-            controller.Source = source;
-            controller.Ratio = ratio;
-            controller.BgColor = bgColor;
+            if (controller == null) 
+            {
+                Debug.LogWarning("EffectInstance: No controller assigned");
+                return;
+            }
+            
+            try
+            {
+                controller.Source = source;
+                controller.Ratio = ratio;
+                controller.BgColor = bgColor;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"EffectInstance: Error updating controller - {ex.Message}");
+            }
         }
+        
+        /// <summary>
+        /// Check if this effect instance is properly configured
+        /// </summary>
+        public bool IsValid => controller != null;
+        
+        /// <summary>
+        /// Get the output texture from the controller, if available
+        /// </summary>
+        public RenderTexture OutputTexture => controller?.Output;
     }
 }
