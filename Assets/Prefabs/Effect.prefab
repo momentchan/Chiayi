@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4726949872240869949}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.7777779, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
@@ -51,45 +51,47 @@ MonoBehaviour:
   _maskSetting:
     mat: {fileID: 0}
     targetHSV: {x: 0, y: 0, z: 0}
-    filterRange: {x: 0, y: 0.04, z: 0.62}
-    smoothRange: {x: 0, y: 0.1}
+    filterRange: {x: 0, y: 0.3, z: 0.62}
+    smoothRange: {x: 0, y: 0.26}
   _maskBlurParams:
     iterations: 9
     lod: 3
     step: 2.8
   _edgeSetting:
     mat: {fileID: 0}
-    threshold: 1
-    softness: 0.1
-    gain: 1
-    strength: 0
+    threshold: 0.377
+    softness: 0.0513
+    gain: 0.42
+    strength: 2.44
   _shiftSetting:
     mat: {fileID: 0}
     shiftParams1:
       enable: 1
-      steps: 3.71
-      maxSpan: 0.17
-      randomness: 0.568
-      strength: 0.432
-      sigma: 0.097
+      steps: 8.3
+      maxSpan: 0.203
+      randomness: 0.726
+      strength: 0.629
+      sigma: 0.106
       wave: {x: 0.4, y: 6}
     shiftParams2:
       enable: 1
       steps: 100
-      maxSpan: 0.17
+      maxSpan: 0.274
       randomness: 0
-      strength: 0.021
-      sigma: 0.323
-      wave: {x: 0.4, y: 6.02}
+      strength: 0.05
+      sigma: 1
+      wave: {x: 0.4, y: 5.86}
   _saturationMaskSetting:
     mat: {fileID: 0}
-    strength: 1
-    smoothRange: {x: 0.44, y: 1.38}
+    strength: 5
+    smoothRange: {x: 0.14, y: 0.36}
   _saturationBlurParams:
-    iterations: 7
+    iterations: 6
     lod: 2
-    step: 4
+    step: 2
   _compositeSetting:
     mat: {fileID: 0}
-    noiseOffset: 0.1
+    bgColor: {r: 0.7106918, g: 0.6435267, b: 0.54307574, a: 1}
+    noiseOffset: 0.0481
     fbmParams: {x: 3, y: 0.02, z: 1, w: 1}
+    distortionParams: {x: 3, y: 0, z: 0.04, w: 1}

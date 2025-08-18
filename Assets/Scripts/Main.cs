@@ -182,15 +182,16 @@ namespace Chiyi
     {
         public EffectController controller;
         public Texture2D source;
-
         [Range(0f, 1f)] public float ratio; // internal effect
         [Range(0f, 1f)] public float blend; // external blend
+        public Color bgColor;
 
         public void Update()
         {
             if (controller == null) return;
             controller.Source = source;
             controller.Ratio = ratio;
+            controller.BgColor = bgColor;
         }
     }
 }

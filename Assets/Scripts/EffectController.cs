@@ -60,6 +60,7 @@ namespace Chiyi
 
         public Texture2D Source { get; set; }
         public RenderTexture Output { get => output; }
+        public Color BgColor { get; set; }
         public float Ratio { get; set; }
 
         /// <summary>
@@ -231,6 +232,7 @@ namespace Chiyi
                 _compositeSetting.mat.SetTexture("_ShiftTex", shift);
                 _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
                 _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
+                _compositeSetting.mat.SetColor("_BgColor", BgColor);
 
                 _compositeSetting.Update(Source, composite);
             }
@@ -387,8 +389,8 @@ namespace Chiyi
             [Header("Edge Detection Parameters")]
             [Range(0f, 1f)] public float threshold = 0.3f;
             [Range(0f, 0.1f)] public float softness = 0.03f;
-            [Range(0f, 1f)] public float gain = 0.98f;
-            [Range(0f, 2f)] public float strength = 1f;
+            [Range(0f, 10f)] public float gain = 0.98f;
+            [Range(0f, 5f)] public float strength = 1f;
 
             public void Update(Texture source, RenderTexture target)
             {
@@ -440,10 +442,10 @@ namespace Chiyi
                 public bool enable = false;
 
                 [Header("Shift Values")]
-                [Range(1f, 32f)] public float steps = 8f;
-                [Range(0f, 100f)] public float maxSpan = 10f;
+                [Range(1f, 100f)] public float steps = 8f;
+                [Range(0f, 1f)] public float maxSpan = 1f;
                 [Range(0f, 1f)] public float randomness = 0.5f;
-                [Range(0f, 1f)] public float strength = 0.5f;
+                [Range(0f, 5f)] public float strength = 0.5f;
                 [Range(0f, 1f)] public float sigma = 0.5f;
                 public Vector2 wave = Vector2.one;
 
@@ -469,7 +471,7 @@ namespace Chiyi
             public Material mat;
 
             [Header("Saturation Parameters")]
-            [Range(0f, 1f)] public float strength = 0.2f;
+            [Range(0f, 10f)] public float strength = 0.2f;
             public Vector2 smoothRange;
 
             public void Update(Texture source, RenderTexture target)
@@ -498,6 +500,7 @@ namespace Chiyi
             [Header("Composite Parameters")]
             [Range(0f, 0.1f)] public float noiseOffset = 0.05f;
             public Vector4 fbmParams = new Vector4(1, 1, 1, 1);
+            public Vector4 distortionParams = new Vector4(3f, 0.005f, 0.04f, 1);
 
             public void Update(Texture source, RenderTexture target)
             {
@@ -509,6 +512,7 @@ namespace Chiyi
 
                 mat.SetFloat("_NoiseOffset", noiseOffset);
                 mat.SetVector("_FbmParams", fbmParams);
+                mat.SetVector("_DistortionParams", distortionParams);
 
                 Graphics.Blit(source, target, mat, 0);
             }

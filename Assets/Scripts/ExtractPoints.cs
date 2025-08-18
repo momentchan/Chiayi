@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace Chiyi
 {
-    public class ExtractPoints : MonoBehaviour, IEffect
+    public class ExtractPoints : MonoBehaviour
     {
         [SerializeField]
         private VisualEffect vfx;
