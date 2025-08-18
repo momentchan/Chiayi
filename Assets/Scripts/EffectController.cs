@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using mj.gist;
 
-namespace Chiyi
+namespace Chiayi
 {
     [ExecuteInEditMode]
     public class EffectController : MonoBehaviour, IEffect

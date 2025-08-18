@@ -5,7 +5,7 @@ using System.Collections;
 using Osc;
 using UnityEngine;
 
-namespace Chiyi
+namespace Chiayi
 {
     [ExecuteInEditMode]
     public class Main : MonoBehaviour
@@ -22,6 +22,8 @@ namespace Chiyi
 
         [Header("Effect Instances")]
         [SerializeField] private List<EffectInstance> _effectInstances = new List<EffectInstance>();
+
+        [SerializeField] private PixelExtractor _pixelExtractor;
         
         // State management
         private int _currentEffectIndex = 0;
@@ -175,6 +177,9 @@ namespace Chiyi
         /// </summary>
         private IEnumerator TransitionCoroutine()
         {
+
+            _pixelExtractor.Execute(NextEffect);
+
             // 1) Initialize next effect
             var nextEffect = NextEffect;
             if (nextEffect != null)

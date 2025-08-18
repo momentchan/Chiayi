@@ -2,13 +2,28 @@
 
 Texture2D<float4> _Tex;   
 int2  _Size;              
-float _Epsilon;           
+float _Epsilon;
+bool _UsePerceptualBrightness;           
 
 AppendStructuredBuffer<float2> _OutUV;     
 
-inline bool IsNonZero(float3 rgb, float eps)
+// Calculate perceptual brightness using luminance formula
+inline float CalculateBrightness(float3 rgb)
 {
-    return max(rgb.r, max(rgb.g, rgb.b)) > eps;
+    // ITU-R BT.709 luma coefficients for perceptual brightness
+    return dot(rgb, float3(0.2126, 0.7152, 0.0722));
+}
+
+// Alternative: Calculate maximum RGB brightness
+inline float CalculateMaxBrightness(float3 rgb)
+{
+    return max(rgb.r, max(rgb.g, rgb.b));
+}
+
+inline bool IsBrightEnough(float3 rgb, float threshold, bool usePerceptual)
+{
+    float brightness = usePerceptual ? CalculateBrightness(rgb) : CalculateMaxBrightness(rgb);
+    return brightness > threshold;
 }
 
 inline float3 FetchRGB(uint2 pix)
@@ -26,7 +41,7 @@ void ExtractUV(uint3 id : SV_DispatchThreadID)
     float2 uv  = (float2(pix) + 0.5) / float2(_Size);
     float3 rgb = FetchRGB(pix);
 
-    if (IsNonZero(rgb, _Epsilon))
+    if (IsBrightEnough(rgb, _Epsilon, _UsePerceptualBrightness))
     {
         _OutUV.Append(uv);
     }
