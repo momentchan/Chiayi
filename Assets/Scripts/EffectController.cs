@@ -7,104 +7,40 @@ namespace Chiyi
     [ExecuteInEditMode]
     public class EffectController : MonoBehaviour, ISource
     {
+        [Header("Configuration")]
         [SerializeField] private EffectType _effectType;
+        [SerializeField] private Vector2Int _textureSize = new Vector2Int(1920, 1080);
+        [SerializeField] private RenderTextureFormat _textureFormat = RenderTextureFormat.ARGBFloat;
 
-        #region RenderTexture
-        [SerializeField] private RenderTexture _mask;
-        private RenderTexture mask
-        {
-            get
-            {
-                if (_mask == null)
-                    _mask = CreateRenderTexture();
-                return _mask;
-            }
-        }
-
-        [SerializeField] private RenderTexture _maskBlur;
-        private RenderTexture maskBlur
-        {
-            get
-            {
-                if (_maskBlur == null)
-                    _maskBlur = CreateRenderTexture();
-                return _maskBlur;
-            }
-        }
-
-        [SerializeField] private RenderTexture _edge;
-        private RenderTexture edge
-        {
-            get
-            {
-                if (_edge == null)
-                    _edge = CreateRenderTexture();
-                return _edge;
-            }
-        }
-
-        [SerializeField] private RenderTexture _shift;
-        private RenderTexture shift
-        {
-            get
-            {
-                if (_shift == null)
-                    _shift = CreateRenderTexture();
-                return _shift;
-            }
-        }
-
-        [SerializeField] private RenderTexture _saturation;
-        private RenderTexture saturation
-        {
-            get
-            {
-                if (_saturation == null)
-                    _saturation = CreateRenderTexture();
-                return _saturation;
-            }
-        }
-
-        [SerializeField] private RenderTexture _saturationBlur;
-        private RenderTexture saturationBlur
-        {
-            get
-            {
-                if (_saturationBlur == null)
-                    _saturationBlur = CreateRenderTexture();
-                return _saturationBlur;
-            }
-        }
-
-        [SerializeField] private RenderTexture _composite;
-        private RenderTexture composite
-        {
-            get
-            {
-                if (_composite == null)
-                    _composite = CreateRenderTexture();
-                return _composite;
-            }
-        }
-
+        #region RenderTextures
+        [Header("Output")]
         [SerializeField] private RenderTexture _output;
-
+        
+        // Cached render textures - lazily created
+        private readonly Dictionary<string, RenderTexture> _renderTextures = new Dictionary<string, RenderTexture>();
+        
+        // Texture accessors with lazy creation
+        private RenderTexture mask => GetOrCreateRenderTexture("mask");
+        private RenderTexture maskBlur => GetOrCreateRenderTexture("maskBlur");
+        private RenderTexture edge => GetOrCreateRenderTexture("edge");
+        private RenderTexture shift => GetOrCreateRenderTexture("shift");
+        private RenderTexture saturation => GetOrCreateRenderTexture("saturation");
+        private RenderTexture saturationBlur => GetOrCreateRenderTexture("saturationBlur");
+        private RenderTexture composite => GetOrCreateRenderTexture("composite");
         #endregion
 
+        [Header("Shaders")]
         [SerializeField] private Shader _blurShader;
+        private Material _blurMat;
         private Material blurMat
         {
             get
             {
-                if (_blurMat == null)
+                if (_blurMat == null && _blurShader != null)
                     _blurMat = new Material(_blurShader);
                 return _blurMat;
             }
         }
-        private Material _blurMat;
-
-        private readonly int _width = 1920;
-        private readonly int _height = 1080;
 
         [Header("Mask")]
         [SerializeField] private MaskSetting _maskSetting;
@@ -124,91 +60,273 @@ namespace Chiyi
         [SerializeField] private CompositeSetting _compositeSetting;
 
 
+        
         public Texture2D SourceTexture { get; set; }
         public float Ratio { get; set; }
-
+        
+        /// <summary>
+        /// Get or create a render texture with the specified name
+        /// </summary>
+        private RenderTexture GetOrCreateRenderTexture(string name)
+        {
+            if (_renderTextures.TryGetValue(name, out RenderTexture rt))
+            {
+                if (rt != null && rt.IsCreated())
+                    return rt;
+            }
+            
+            rt = CreateRenderTexture();
+            rt.name = $"EffectController_{name}";
+            _renderTextures[name] = rt;
+            return rt;
+        }
+        
+        /// <summary>
+        /// Create a new render texture with current settings
+        /// </summary>
         private RenderTexture CreateRenderTexture()
         {
-            var rt = new RenderTexture(_width, _height, 0, RenderTextureFormat.ARGBFloat);
+            var rt = new RenderTexture(_textureSize.x, _textureSize.y, 0, _textureFormat)
+            {
+                enableRandomWrite = false,
+                useMipMap = false,
+                autoGenerateMips = false
+            };
             rt.Create();
             return rt;
         }
-
+        
+        /// <summary>
+        /// Check if effects need to be processed
+        /// </summary>
+        private bool ShouldProcessEffects()
+        {
+            return SourceTexture != null;
+        }
+        
         void Update()
         {
-            // Shader.SetGlobalTexture("_SourceTex", SourceTexture);
-            // Shader.SetGlobalFloat("_GlobalRatio", Ratio);
-
-            // mask
-            _maskSetting.Update(SourceTexture, mask);
-            BlurUtil.BlurWithDownSample(mask, maskBlur, _maskBlurParams.lod, _maskBlurParams.iterations, _maskBlurParams.step, blurMat);
-
-            // edge
-            _edgeSetting.Update(SourceTexture, edge);
-
-            // shift
-            _shiftSetting.Update(SourceTexture, shift);
-
-            // saturation mask
-            _saturationMaskSetting.Update(SourceTexture, saturation);
-            BlurUtil.BlurWithDownSample(saturation, saturationBlur, _saturationBlurParams.lod, _saturationBlurParams.iterations, _saturationBlurParams.step, blurMat);
-
-            // composite
-            _compositeSetting.mat.SetTexture("_SourceTex", SourceTexture);
-            _compositeSetting.mat.SetTexture("_EdgeTex", edge);
-            _compositeSetting.mat.SetTexture("_ShiftTex", shift);
-            _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
-            _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
-            _compositeSetting.Update(SourceTexture, composite);
-
-            switch (_effectType)
+            if (!ShouldProcessEffects())
+                return;
+                
+            try
             {
-                case EffectType.Original:
-                    Graphics.Blit(SourceTexture, _output);
-                    break;
-                case EffectType.Mask:
-                    Graphics.Blit(mask, _output);
-                    break;
-                case EffectType.MaskBlur:
-                    Graphics.Blit(maskBlur, _output);
-                    break;
-                case EffectType.Edge:
-                    Graphics.Blit(edge, _output);
-                    break;
-                case EffectType.Shift:
-                    Graphics.Blit(shift, _output);
-                    break;
-                case EffectType.SaturationMask:
-                    Graphics.Blit(saturation, _output);
-                    break;
-                case EffectType.SaturationMaskBlur:
-                    Graphics.Blit(saturationBlur, _output);
-                    break;
-                case EffectType.Composite:
-                    Graphics.Blit(composite, _output);
-                    break;
+                ProcessEffects();
+                GenerateOutput();
             }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"EffectController: Error processing effects - {ex.Message}", this);
+            }
+        }
+        
+        /// <summary>
+        /// Process all visual effects
+        /// </summary>
+        private void ProcessEffects()
+        {
+            if (SourceTexture == null)
+            {
+                Debug.LogWarning("EffectController: Source texture is null", this);
+                return;
+            }
+            
+            // Process mask effect
+            ProcessMaskEffect();
+            
+            // Process edge effect
+            ProcessEdgeEffect();
+            
+            // Process shift effect
+            ProcessShiftEffect();
+            
+            // Process saturation mask effect
+            ProcessSaturationMaskEffect();
+            
+            // Process composite effect
+            ProcessCompositeEffect();
+        }
+        
+        private void ProcessMaskEffect()
+        {
+            if (_maskSetting?.mat != null)
+            {
+                _maskSetting.Update(SourceTexture, mask);
+                
+                // Apply blur if blur material is available
+                if (blurMat != null)
+                {
+                    BlurUtil.BlurWithDownSample(mask, maskBlur, 
+                        _maskBlurParams.lod, _maskBlurParams.iterations, _maskBlurParams.step, blurMat);
+                }
+                else
+                {
+                    Graphics.Blit(mask, maskBlur); // Fallback without blur
+                }
+            }
+        }
+        
+        private void ProcessEdgeEffect()
+        {
+            if (_edgeSetting?.mat != null)
+            {
+                _edgeSetting.Update(SourceTexture, edge);
+            }
+        }
+        
+        private void ProcessShiftEffect()
+        {
+            if (_shiftSetting?.mat != null)
+            {
+                _shiftSetting.Update(SourceTexture, shift);
+            }
+        }
+        
+        private void ProcessSaturationMaskEffect()
+        {
+            if (_saturationMaskSetting?.mat != null)
+            {
+                _saturationMaskSetting.Update(SourceTexture, saturation);
+                
+                // Apply blur if blur material is available
+                if (blurMat != null)
+                {
+                    BlurUtil.BlurWithDownSample(saturation, saturationBlur,
+                        _saturationBlurParams.lod, _saturationBlurParams.iterations, _saturationBlurParams.step, blurMat);
+                }
+                else
+                {
+                    Graphics.Blit(saturation, saturationBlur); // Fallback without blur
+                }
+            }
+        }
+        
+        private void ProcessCompositeEffect()
+        {
+            if (_compositeSetting?.mat != null)
+            {
+                // Set all input textures for composite
+                _compositeSetting.mat.SetTexture("_SourceTex", SourceTexture);
+                _compositeSetting.mat.SetTexture("_EdgeTex", edge);
+                _compositeSetting.mat.SetTexture("_ShiftTex", shift);
+                _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
+                _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
+                
+                _compositeSetting.Update(SourceTexture, composite);
+            }
+        }
+        
+        /// <summary>
+        /// Generate the final output based on selected effect type
+        /// </summary>
+        private void GenerateOutput()
+        {
+            if (_output == null)
+            {
+                Debug.LogWarning("EffectController: Output render texture is not assigned", this);
+                return;
+            }
+            
+            Texture sourceTexture = GetEffectTexture(_effectType);
+            if (sourceTexture != null)
+            {
+                Graphics.Blit(sourceTexture, _output);
+            }
+            else
+            {
+                // Fallback to original texture
+                Graphics.Blit(SourceTexture, _output);
+            }
+        }
+        
+        /// <summary>
+        /// Get the appropriate texture for the specified effect type
+        /// </summary>
+        private Texture GetEffectTexture(EffectType effectType)
+        {
+            return effectType switch
+            {
+                EffectType.Original => SourceTexture,
+                EffectType.Mask => mask,
+                EffectType.MaskBlur => maskBlur,
+                EffectType.Edge => edge,
+                EffectType.Shift => shift,
+                EffectType.SaturationMask => saturation,
+                EffectType.SaturationMaskBlur => saturationBlur,
+                EffectType.Composite => composite,
+                _ => SourceTexture
+            };
         }
 
         [ContextMenu("Save Texture")]
         public void SaveTexture()
         {
-            TextureIO.SaveRenderTextureToPNG(_output, "Assets/Resource/prev.png");
+            if (_output != null)
+            {
+                string timestamp = System.DateTime.Now.ToString("yyMMdd_HHmmss");
+                string path = $"Assets/Resource/output_{timestamp}.png";
+                TextureIO.SaveRenderTextureToPNG(_output, path);
+                Debug.Log($"Texture saved to: {path}", this);
+            }
+            else
+            {
+                Debug.LogWarning("EffectController: No output texture to save", this);
+            }
+        }
+        
+        void OnDestroy()
+        {
+            CleanupResources();
+        }
+        
+        void OnDisable()
+        {
+            CleanupResources();
+        }
+        
+        /// <summary>
+        /// Clean up render textures and materials
+        /// </summary>
+        private void CleanupResources()
+        {
+            // Cleanup render textures
+            foreach (var kvp in _renderTextures)
+            {
+                if (kvp.Value != null)
+                {
+                    kvp.Value.Release();
+                    DestroyImmediate(kvp.Value);
+                }
+            }
+            _renderTextures.Clear();
+            
+            // Cleanup blur material
+            if (_blurMat != null)
+            {
+                DestroyImmediate(_blurMat);
+                _blurMat = null;
+            }
         }
 
         [System.Serializable]
         public class MaskSetting
         {
+            [Header("Material")]
             public Material mat;
-
+            
+            [Header("HSV Filtering")]
             public Vector3 targetHSV;
             public Vector3 filterRange;
             public Vector2 smoothRange;
 
             public void Update(Texture source, RenderTexture target)
             {
-                if (mat == null)
+                if (mat == null || source == null || target == null)
+                {
+                    if (mat == null) Debug.LogWarning("MaskSetting: Material is null");
                     return;
+                }
+                
                 mat.SetVector("_TargetHSV", targetHSV);
                 mat.SetVector("_FilterRange", filterRange);
                 mat.SetVector("_SmoothRange", smoothRange);
@@ -221,16 +339,23 @@ namespace Chiyi
         [System.Serializable]
         public class EdgeSetting
         {
+            [Header("Material")]
             public Material mat;
-            public float threshold = 0.3f;
-            public float softness = 0.03f;
-            public float gain = 0.98f;
-            public float strength = 1f;
+            
+            [Header("Edge Detection Parameters")]
+            [Range(0f, 1f)] public float threshold = 0.3f;
+            [Range(0f, 0.1f)] public float softness = 0.03f;
+            [Range(0f, 1f)] public float gain = 0.98f;
+            [Range(0f, 2f)] public float strength = 1f;
 
             public void Update(Texture source, RenderTexture target)
             {
-                if (mat == null)
+                if (mat == null || source == null || target == null)
+                {
+                    if (mat == null) Debug.LogWarning("EdgeSetting: Material is null");
                     return;
+                }
+                
                 mat.SetFloat("_Threshold", threshold);
                 mat.SetFloat("_Softness", softness);
                 mat.SetFloat("_Gain", gain);
@@ -244,14 +369,21 @@ namespace Chiyi
         [System.Serializable]
         public class ShiftSetting
         {
+            [Header("Material")]
             public Material mat;
-            public ShiftParams shiftParams1;
-            public ShiftParams shiftParams2;
+            
+            [Header("Shift Parameters")]
+            public ShiftParams shiftParams1 = new ShiftParams();
+            public ShiftParams shiftParams2 = new ShiftParams();
 
             public void Update(Texture source, RenderTexture target)
             {
-                if (mat == null)
+                if (mat == null || source == null || target == null)
+                {
+                    if (mat == null) Debug.LogWarning("ShiftSetting: Material is null");
                     return;
+                }
+                
                 shiftParams1.Update(mat, 1);
                 shiftParams2.Update(mat, 2);
                 mat.SetTexture("_SourceTex", source);
@@ -262,22 +394,21 @@ namespace Chiyi
             [System.Serializable]
             public class ShiftParams
             {
-                public bool enable;
-                public float steps;
-                public float maxSpan;
-
-                [Range(0, 1f)]
-                public float randomness;
-
-                [Range(0, 1f)]
-                public float strength;
-
-                [Range(0, 1f)]
-                public float sigma;
-                public Vector2 wave;
+                [Header("Shift Control")]
+                public bool enable = false;
+                
+                [Header("Shift Values")]
+                [Range(1f, 32f)] public float steps = 8f;
+                [Range(0f, 100f)] public float maxSpan = 10f;
+                [Range(0f, 1f)] public float randomness = 0.5f;
+                [Range(0f, 1f)] public float strength = 0.5f;
+                [Range(0f, 1f)] public float sigma = 0.5f;
+                public Vector2 wave = Vector2.one;
 
                 public void Update(Material mat, int index)
                 {
+                    if (mat == null) return;
+                    
                     mat.SetFloat($"_Steps{index}", steps);
                     mat.SetFloat($"_Strength{index}", enable ? strength : 0);
                     mat.SetFloat($"_MaxSpan{index}", maxSpan);
@@ -292,13 +423,21 @@ namespace Chiyi
         [System.Serializable]
         public class SaturationMaskSetting
         {
+            [Header("Material")]
             public Material mat;
-            public float strength = 0.2f;
+            
+            [Header("Saturation Parameters")]
+            [Range(0f, 1f)] public float strength = 0.2f;
             public Vector2 smoothRange;
+            
             public void Update(Texture source, RenderTexture target)
             {
-                if (mat == null)
+                if (mat == null || source == null || target == null)
+                {
+                    if (mat == null) Debug.LogWarning("SaturationMaskSetting: Material is null");
                     return;
+                }
+                
                 mat.SetFloat("_Strength", strength);
                 mat.SetVector("_SmoothRange", smoothRange);
                 mat.SetTexture("_SourceTex", source);
@@ -311,16 +450,21 @@ namespace Chiyi
         [System.Serializable]
         public class CompositeSetting
         {
+            [Header("Material")]
             public Material mat;
 
-            [Range(0, 0.1f)]
-            public float noiseOffset = 0.05f;
+            [Header("Composite Parameters")]
+            [Range(0f, 0.1f)] public float noiseOffset = 0.05f;
             public Vector4 fbmParams = new Vector4(1, 1, 1, 1);
 
             public void Update(Texture source, RenderTexture target)
             {
-                if (mat == null)
+                if (mat == null || source == null || target == null)
+                {
+                    if (mat == null) Debug.LogWarning("CompositeSetting: Material is null");
                     return;
+                }
+                
                 mat.SetFloat("_NoiseOffset", noiseOffset);
                 mat.SetVector("_FbmParams", fbmParams);
 
@@ -331,9 +475,10 @@ namespace Chiyi
         [System.Serializable]
         public class BlurParams
         {
-            public int iterations = 1;
-            public int lod = 1;
-            public float step = 1f;
+            [Header("Blur Parameters")]
+            [Range(1, 8)] public int iterations = 1;
+            [Range(0, 4)] public int lod = 1;
+            [Range(0.1f, 4f)] public float step = 1f;
         }
 
         public enum EffectType
