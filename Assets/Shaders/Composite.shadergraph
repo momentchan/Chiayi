@@ -707,6 +707,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "6fb83b00e2214d1494587d73e8be50a8"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "acb5a1e18f644b7586133f8b3407881e"
+                },
+                "m_SlotId": 2
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "6fc700ee3f184458874c9c3b20163a33"
                 },
                 "m_SlotId": 2
@@ -1141,6 +1155,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "efde3c3ecbfa4832b641be9037359779"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "6fc700ee3f184458874c9c3b20163a33"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "efea518d4a1a4e079e702b2bd3f68442"
                 },
                 "m_SlotId": 2
@@ -1314,7 +1342,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "02f2415ca8aa4a0c9c36b2297e294539",
     "m_Id": 0,
-    "m_DisplayName": "GlobalRatio",
+    "m_DisplayName": "Ratio",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1379,10 +1407,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1332.66650390625,
-            "y": 421.3332824707031,
+            "x": 1411.3333740234375,
+            "y": 482.0000305175781,
             "width": 209.3333740234375,
-            "height": 304.0000915527344
+            "height": 304.0000305175781
         }
     },
     "m_Slots": [
@@ -1624,7 +1652,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "0ffe5ae161cd434288e1750301ac2664",
     "m_Id": 0,
-    "m_DisplayName": "GlobalRatio",
+    "m_DisplayName": "Ratio",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2024,7 +2052,7 @@
     "m_ObjectId": "258bf0b5125d40b08fe3352e70d33c50",
     "m_Title": "Shift",
     "m_Position": {
-        "x": -418.00006103515627,
+        "x": -418.0000305175781,
         "y": -341.3333740234375
     }
 }
@@ -3017,8 +3045,8 @@
     "m_ObjectId": "43a2c19929c0484ba01b3d1513e1af0a",
     "m_Title": "Bg Overlay",
     "m_Position": {
-        "x": 3.333292007446289,
-        "y": 235.3333282470703
+        "x": 3.3333282470703127,
+        "y": 235.33349609375
     }
 }
 
@@ -3751,18 +3779,18 @@
     "m_Guid": {
         "m_GuidSerialized": "1fa76fbf-62d4-43e2-a248-9de670c745ed"
     },
-    "m_Name": "GlobalRatio",
+    "m_Name": "Ratio",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "GlobalRatio",
-    "m_DefaultReferenceName": "_GlobalRatio",
+    "m_RefNameGeneratedByDisplayName": "Ratio",
+    "m_DefaultReferenceName": "_Ratio",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
+    "overrideHLSLDeclaration": true,
+    "hlslDeclarationOverride": 2,
     "m_Hidden": false,
     "m_Value": 0.0,
     "m_FloatType": 0,
@@ -4958,8 +4986,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 847.3333740234375,
-            "y": 521.3334350585938,
+            "x": 1015.3334350585938,
+            "y": 396.66668701171877,
             "width": 106.66668701171875,
             "height": 36.0
         }
@@ -5764,16 +5792,16 @@
     "m_Type": "UnityEditor.ShaderGraph.RemapNode",
     "m_ObjectId": "985c4856a1d54030b9f110ff37f6d6fa",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "43a2c19929c0484ba01b3d1513e1af0a"
     },
     "m_Name": "Remap",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 614.5632934570313,
-            "y": 1053.22998046875,
-            "width": 209.33331298828126,
+            "x": 345.9999694824219,
+            "y": 1025.9998779296875,
+            "width": 209.33334350585938,
             "height": 328.0
         }
     },
@@ -6558,17 +6586,17 @@
     "m_Type": "UnityEditor.ShaderGraph.SampleTexture2DNode",
     "m_ObjectId": "aea5dd9d0f314f4d83c1c1b57638bd78",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "43a2c19929c0484ba01b3d1513e1af0a"
     },
     "m_Name": "Sample Texture 2D",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 296.6666259765625,
-            "y": 903.3333129882813,
-            "width": 209.33334350585938,
-            "height": 438.66656494140627
+            "x": 28.66666603088379,
+            "y": 875.9999389648438,
+            "width": 209.33331298828126,
+            "height": 438.66668701171877
         }
     },
     "m_Slots": [
@@ -6693,10 +6721,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1069.333251953125,
-            "y": 325.33331298828127,
+            "x": 1273.3333740234375,
+            "y": 381.3333435058594,
             "width": 162.0,
-            "height": 180.0
+            "height": 180.00009155273438
         }
     },
     "m_Slots": [
@@ -7179,7 +7207,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "bded0537d2514f3bb6ceb43cae26a765",
     "m_Id": 0,
-    "m_DisplayName": "GlobalRatio",
+    "m_DisplayName": "Ratio",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -7497,17 +7525,17 @@
     "m_Type": "UnityEditor.ShaderGraph.MultiplyNode",
     "m_ObjectId": "ce61bec87c254734a0c413cf0aa8b014",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "43a2c19929c0484ba01b3d1513e1af0a"
     },
     "m_Name": "Multiply",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1206.66650390625,
-            "y": 871.9999389648438,
+            "x": 938.6666259765625,
+            "y": 844.6666259765625,
             "width": 209.3333740234375,
-            "height": 303.99993896484377
+            "height": 304.0
         }
     },
     "m_Slots": [

@@ -518,9 +518,9 @@ namespace Chiyi
         public class BlurParams
         {
             [Header("Blur Parameters")]
-            [Range(1, 8)] public int iterations = 1;
+            [Range(1, 20)] public int iterations = 1;
             [Range(0, 4)] public int lod = 1;
-            [Range(0.1f, 4f)] public float step = 1f;
+            [Range(0.1f, 20f)] public float step = 1f;
         }
 
         public enum EffectType

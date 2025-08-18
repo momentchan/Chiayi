@@ -54,9 +54,9 @@ MonoBehaviour:
     filterRange: {x: 0, y: 0.04, z: 0.62}
     smoothRange: {x: 0, y: 0.1}
   _maskBlurParams:
-    iterations: 8
-    lod: 2
-    step: 4
+    iterations: 9
+    lod: 3
+    step: 2.8
   _edgeSetting:
     mat: {fileID: 0}
     threshold: 1
@@ -83,12 +83,12 @@ MonoBehaviour:
       wave: {x: 0.4, y: 6.02}
   _saturationMaskSetting:
     mat: {fileID: 0}
-    strength: 4.56
+    strength: 1
     smoothRange: {x: 0.44, y: 1.38}
   _saturationBlurParams:
     iterations: 7
     lod: 2
-    step: 7
+    step: 4
   _compositeSetting:
     mat: {fileID: 0}
     noiseOffset: 0.1

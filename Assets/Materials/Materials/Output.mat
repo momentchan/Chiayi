@@ -72,9 +72,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: 1
-    - _CurrentBlend: 0
-    - _NextBlend: 0
-    - _PrevBlend: 0
+    - _CurrentBlend: 1
+    - _NextBlend: 1
+    - _PrevBlend: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Ratio: 0.34
