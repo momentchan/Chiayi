@@ -11,7 +11,7 @@ namespace Chiyi
     public class Main : MonoBehaviour
     {
         [Header("Output / Blend Material")]
-        [SerializeField] private Material _outputMat;      
+        [SerializeField] private Material _outputMat;
 
         [Header("Optional Capture")]
         [SerializeField] private RenderTexture _spoutTex;
@@ -20,6 +20,8 @@ namespace Chiyi
         [Header("Blend Controls")]
         [SerializeField, Range(0f, 1f)] private float _prevFloor = 0.2f; // final blend of Current
         [SerializeField, Min(0f)] private float _fadeDuration = 0.8f;    // fade duration
+        [SerializeField] private AnimationCurve _ease = null; // 可為 null=線性
+
 
         [Header("Internal (do not edit at runtime)")]
         [SerializeField] private int _currentIndex = 0;                  // index of Current
@@ -77,43 +79,70 @@ namespace Chiyi
         }
 
         //  coroutine: Prev → 0、Current → _prevFloor、Next → 1（smooth transition）
+
         private IEnumerator BlendEffect()
         {
-            // start from current
-            float startPrev = Prev?.blend ?? 0f;
-            float startCurrent = Current?.blend ?? 0f;
-            float startNext = Next?.blend ?? 0f;
+            // —— 1) 準備 Next，強制乾淨起點 —— //
+            if (Next != null)
+            {
+                // 綁定新來源（BeginSwitch 時已經設好 source）
+                if (Next.controller != null)
+                {
+                    Next.controller.Source = Next.source;
+                    Next.controller.Ratio = 0f;   // 內部效果從 0 開始
+                }
 
-            // target
-            float targetPrev = 0f;
-            float targetCurrent = _prevFloor;
-            float targetNext = 1f;
+                Next.ratio = 0f;  // 外部合成：Next 的 ratio 從 0 開始
+                Next.blend = 1f;  // 外部合成：Next 立即全開（保持最大）
+            }
 
+            // 讓 Controller 有機會產出有效的 Output（避免第一幀黑圖/錯幀）
+            yield return null;                // 等一幀
+                                              // 也可更保險：yield return new WaitForEndOfFrame();
+
+            // —— 2) 讀取當下值作為「平滑銜接」起點 —— //
+            float startPrevBlend = Prev?.blend ?? 0f;
+            float startCurrentBlend = Current?.blend ?? 0f;
+            float startNextRatio = Next?.ratio ?? 0f; // 理論上是 0
+
+            // 目標
+            const float targetPrevBlend = 0f;
+            float targetCurrentBlend = _prevFloor;
+            const float targetNextRatio = 1f;
+
+            // —— 3) 漸變 —— //
             float t = 0f;
             while (t < _fadeDuration)
             {
                 t += Time.deltaTime;
                 float k = Mathf.Clamp01(t / Mathf.Max(0.0001f, _fadeDuration));
+                if (_ease != null) k = _ease.Evaluate(k);
 
-                if (Prev != null) Prev.blend = Mathf.Lerp(startPrev, targetPrev, k);
-                if (Current != null) Current.blend = Mathf.Lerp(startCurrent, targetCurrent, k);
-                if (Next != null) Next.blend = Mathf.Lerp(startNext, targetNext, k);
+                // Prev: blend → 0
+                if (Prev != null)
+                    Prev.blend = Mathf.Lerp(startPrevBlend, targetPrevBlend, k);
 
-                // if (Next?.controller    != null) Next.controller.Ratio    = k;   // 0→1
-                // if (Current?.controller != null) Current.controller.Ratio = 1f; // 1→_prevFloor
-                // if (Prev?.controller    != null) Prev.controller.Ratio    = 1f; // 1→0
+                // Current: blend → prevFloor
+                if (Current != null)
+                    Current.blend = Mathf.Lerp(startCurrentBlend, targetCurrentBlend, k);
+
+                // Next: ratio 0→1（blend 保持 1 不動）
+                if (Next != null)
+                    Next.ratio = Mathf.Lerp(startNextRatio, targetNextRatio, k);
+
+                // 可選：也把內部 Controller.Ratio 同步推（若你想連內部特效強度也一起變）
+                // if (Next?.controller != null) Next.controller.Ratio = Next.ratio;
 
                 yield return null;
             }
 
-            // finish
-            if (Prev != null) Prev.blend = targetPrev;
-            if (Current != null) Current.blend = targetCurrent;
-            if (Next != null) Next.blend = targetNext;
+            // —— 4) 收尾鎖定 —— //
+            if (Prev != null) Prev.blend = targetPrevBlend;
+            if (Current != null) Current.blend = targetCurrentBlend;
+            if (Next != null) Next.ratio = targetNextRatio;
 
-            // rotate index: Next → Current
+            // —— 5) 輪轉：Next → Current —— //
             _currentIndex = WrapIndex(_currentIndex + 1);
-
             _blendCo = null;
         }
 
