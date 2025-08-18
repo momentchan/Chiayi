@@ -9,14 +9,20 @@ namespace Chiyi
     [ExecuteInEditMode]
     public class Main : MonoBehaviour
     {
+        [SerializeField] private Material _outputMat;
         [SerializeField] private Texture2D _source;
 
-        [SerializeField, Range(0, 1)] private float _ratio;
+        [SerializeField, Range(0, 1)] private float _globalRatio;
 
         [SerializeField] private RenderTexture _spoutTex;
 
-        [SerializeField]
-        private string _outputFolder = "C:/Chiayi/";
+        [SerializeField] private string _outputFolder = "C:/Chiayi/";
+
+
+        [SerializeField] private EffectInstance _previous;
+        [SerializeField] private EffectInstance _current;
+
+
 
         public void OnReceivePath(OscPort.Capsule c)
         {
@@ -53,17 +59,33 @@ namespace Chiyi
 
         void Update()
         {
-            return;
-            if (_source == null)
-                return;
-
-            foreach (var source in GetComponentsInChildren<ISource>())
+            if (_current != null)
             {
-                source.SourceTexture = _source;
-                source.Ratio = _ratio;
+                _current.controller.Source = _current.source;
+                _current.controller.Ratio = _current.ratio;
+
+                _outputMat.SetTexture("_Current", _current.controller.Output);
             }
+
+            if (_previous != null)
+            {
+                _previous.controller.Source = _previous.source;
+                _previous.controller.Ratio = _previous.ratio;
+
+                _outputMat.SetTexture("_Prev", _previous.controller.Output);
+            }
+
+            _outputMat.SetFloat("_Ratio", _globalRatio);
         }
 
         void OnDestroy() { }
+    }
+
+    [System.Serializable]
+    public class EffectInstance
+    {
+        public EffectController controller;
+        public Texture2D source;
+        [Range(0, 1)] public float ratio;
     }
 }

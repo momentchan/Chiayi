@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace Chiyi
 {
-    public class ExtractPoints : MonoBehaviour, ISource
+    public class ExtractPoints : MonoBehaviour, IEffect
     {
         [SerializeField]
         private VisualEffect vfx;
@@ -17,8 +17,8 @@ namespace Chiyi
 
         public float Ratio { get; set; }
 
-        public Texture2D SourceTexture { get; set; }
-
+        public Texture2D Source { get; set; }
+        public RenderTexture Output { get; set; }
         private GraphicsBuffer outBuf
         {
             get
@@ -51,15 +51,15 @@ namespace Chiyi
         private GraphicsBuffer _outBuf;
         private GraphicsBuffer _countBuf;
 
-        private int w => SourceTexture.width;
-        private int h => SourceTexture.height;
+        private int w => Source.width;
+        private int h => Source.height;
         private int maxPoints => w * h;
 
         [ContextMenu("Extract")]
         void Extract()
         {
             kernel = compute.FindKernel("ExtractUV");
-            compute.SetTexture(kernel, "_Tex", SourceTexture);
+            compute.SetTexture(kernel, "_Tex", Source);
             compute.SetInts("_Size", w, h);
             compute.SetFloat("_Epsilon", epsilon);
             compute.SetBuffer(kernel, "_OutUV", outBuf);
@@ -74,7 +74,7 @@ namespace Chiyi
 
             vfx.SetGraphicsBuffer("SamplesUV", outBuf);
             vfx.SetUInt("SamplesCount", pointCount);
-            vfx.SetTexture("SourceTex", SourceTexture);
+            vfx.SetTexture("SourceTex", Source);
         }
 
         void OnDestroy()

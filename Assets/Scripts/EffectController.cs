@@ -5,27 +5,14 @@ using mj.gist;
 namespace Chiyi
 {
     [ExecuteInEditMode]
-    public class EffectController : MonoBehaviour, ISource
+    public class EffectController : MonoBehaviour, IEffect
     {
         [Header("Configuration")]
-        [SerializeField] private Texture2D _source;
         [SerializeField] private EffectType _effectType;
         [SerializeField] private Vector2Int _textureSize = new Vector2Int(1920, 1080);
         [SerializeField] private RenderTextureFormat _textureFormat = RenderTextureFormat.ARGBFloat;
 
         #region RenderTextures
-        [Header("Output")]
-        [SerializeField] private Material _outputMaterial;
-        private Renderer _renderer;
-        private Renderer renderer
-        {
-            get
-            {
-                if (_renderer == null) _renderer = GetComponent<Renderer>();
-                return _renderer;
-            }
-        }
-
         // Cached render textures - lazily created
         private readonly Dictionary<string, RenderTexture> _renderTextures = new Dictionary<string, RenderTexture>();
 
@@ -71,7 +58,8 @@ namespace Chiyi
         [SerializeField] private CompositeSetting _compositeSetting;
 
 
-        public Texture2D SourceTexture { get => _source; set => _source = value; }
+        public Texture2D Source { get; set; }
+        public RenderTexture Output { get => output; }
         public float Ratio { get; set; }
 
         /// <summary>
@@ -107,14 +95,14 @@ namespace Chiyi
         }
 
 
-        void Start()
+        void OnEnable()
         {
             CreateInstanceMaterials();
         }
 
         void Update()
         {
-            if (SourceTexture == null)
+            if (Source == null)
                 return;
 
             try
@@ -133,11 +121,14 @@ namespace Chiyi
         /// </summary>
         private void ProcessEffects()
         {
-            if (SourceTexture == null)
+            if (Source == null)
             {
                 Debug.LogWarning("EffectController: Source texture is null", this);
                 return;
             }
+
+            // Set global ratio to all materials
+            SetRatioToAllMaterials();
 
             // Process mask effect
             ProcessMaskEffect();
@@ -155,11 +146,32 @@ namespace Chiyi
             ProcessCompositeEffect();
         }
 
+        /// <summary>
+        /// Set the ratio value to all effect materials
+        /// </summary>
+        private void SetRatioToAllMaterials()
+        {
+            if (_maskSetting?.mat != null)
+                _maskSetting.mat.SetFloat("_Ratio", Ratio);
+                
+            if (_edgeSetting?.mat != null)
+                _edgeSetting.mat.SetFloat("_Ratio", Ratio);
+                
+            if (_shiftSetting?.mat != null)
+                _shiftSetting.mat.SetFloat("_Ratio", Ratio);
+                
+            if (_saturationMaskSetting?.mat != null)
+                _saturationMaskSetting.mat.SetFloat("_Ratio", Ratio);
+                
+            if (_compositeSetting?.mat != null)
+                _compositeSetting.mat.SetFloat("_Ratio", Ratio);
+        }
+
         private void ProcessMaskEffect()
         {
             if (_maskSetting?.mat != null)
             {
-                _maskSetting.Update(SourceTexture, mask);
+                _maskSetting.Update(Source, mask);
 
                 // Apply blur if blur material is available
                 if (blurMat != null)
@@ -178,7 +190,7 @@ namespace Chiyi
         {
             if (_edgeSetting?.mat != null)
             {
-                _edgeSetting.Update(SourceTexture, edge);
+                _edgeSetting.Update(Source, edge);
             }
         }
 
@@ -186,7 +198,7 @@ namespace Chiyi
         {
             if (_shiftSetting?.mat != null)
             {
-                _shiftSetting.Update(SourceTexture, shift);
+                _shiftSetting.Update(Source, shift);
             }
         }
 
@@ -194,7 +206,7 @@ namespace Chiyi
         {
             if (_saturationMaskSetting?.mat != null)
             {
-                _saturationMaskSetting.Update(SourceTexture, saturation);
+                _saturationMaskSetting.Update(Source, saturation);
 
                 // Apply blur if blur material is available
                 if (blurMat != null)
@@ -214,13 +226,13 @@ namespace Chiyi
             if (_compositeSetting?.mat != null)
             {
                 // Set all input textures for composite
-                _compositeSetting.mat.SetTexture("_SourceTex", SourceTexture);
+                _compositeSetting.mat.SetTexture("_SourceTex", Source);
                 _compositeSetting.mat.SetTexture("_EdgeTex", edge);
                 _compositeSetting.mat.SetTexture("_ShiftTex", shift);
                 _compositeSetting.mat.SetTexture("_MaskTex", maskBlur);
                 _compositeSetting.mat.SetTexture("_SaturationTex", saturationBlur);
 
-                _compositeSetting.Update(SourceTexture, composite);
+                _compositeSetting.Update(Source, composite);
             }
         }
 
@@ -243,10 +255,8 @@ namespace Chiyi
             else
             {
                 // Fallback to original texture
-                Graphics.Blit(SourceTexture, output);
+                Graphics.Blit(Source, output);
             }
-            renderer.material = _outputMaterial;
-            _outputMaterial.SetTexture("_OutputTex", output);
         }
 
         /// <summary>
@@ -256,7 +266,7 @@ namespace Chiyi
         {
             return effectType switch
             {
-                EffectType.Original => SourceTexture,
+                EffectType.Original => Source,
                 EffectType.Mask => mask,
                 EffectType.MaskBlur => maskBlur,
                 EffectType.Edge => edge,
@@ -264,7 +274,7 @@ namespace Chiyi
                 EffectType.SaturationMask => saturation,
                 EffectType.SaturationMaskBlur => saturationBlur,
                 EffectType.Composite => composite,
-                _ => SourceTexture
+                _ => Source
             };
         }
 
@@ -286,9 +296,6 @@ namespace Chiyi
 
         public void CreateInstanceMaterials()
         {
-            if (_outputMaterial != null)
-                _outputMaterial = new Material(_outputMaterial);
-
             // Create instance materials to avoid sharing between controllers
             if (_maskSetting?.mat != null)
                 _maskSetting.mat = new Material(_maskSetting.mat);
@@ -353,7 +360,7 @@ namespace Chiyi
             public Vector3 filterRange;
             public Vector2 smoothRange;
 
-            public void Update(Texture source, RenderTexture target)
+            public void Update(Texture source, RenderTexture target, float ratio = 1f)
             {
                 if (mat == null || source == null || target == null)
                 {
@@ -365,6 +372,7 @@ namespace Chiyi
                 mat.SetVector("_FilterRange", filterRange);
                 mat.SetVector("_SmoothRange", smoothRange);
                 mat.SetTexture("_SourceTex", source);
+                mat.SetFloat("_Ratio", ratio);
 
                 Graphics.Blit(source, target, mat, 0);
             }
