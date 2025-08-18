@@ -53,6 +53,7 @@ namespace Chiyi
 
         void Update()
         {
+            return;
             if (_source == null)
                 return;
 
