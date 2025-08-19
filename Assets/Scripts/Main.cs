@@ -11,10 +11,11 @@ namespace Chiayi
     public class Main : MonoBehaviour
     {
         [Header("Output Configuration")]
+        [SerializeField] private string _outputFolder = "C:/Chiayi/";
         [SerializeField] private Material _outputMaterial;
+        [SerializeField] private Material _captureMaterial;
         [SerializeField] private RenderTexture _captureTexture;
         [SerializeField] private OscPort _osc;
-        [SerializeField] private string _outputFolder = "C:/Chiayi/";
 
         [Header("Transition Settings")]
         [SerializeField, Range(0f, 1f)] private float _previousLayerOpacity = 0.2f;
@@ -359,6 +360,8 @@ namespace Chiayi
         /// </summary>
         private IEnumerator SaveCaptureTexture()
         {
+            _captureMaterial.SetTexture("_MainTex", CurrentEffect.controller.Output);
+
             yield return new WaitForSeconds(1f);
             
             if (_captureTexture == null)
