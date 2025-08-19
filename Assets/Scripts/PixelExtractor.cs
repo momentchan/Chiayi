@@ -12,6 +12,8 @@ namespace Chiayi
         [Header("VFX Configuration")]
         [SerializeField] private VisualEffect _visualEffect;
         [SerializeField] private ComputeShader _extractionShader;
+
+        [SerializeField] private TextureToNormal _textureToNormal;
         
         [Header("Brightness Extraction Settings")]
         [SerializeField, Range(0f, 1f)] private float _brightnessThreshold = 0.1f;
@@ -100,6 +102,8 @@ namespace Chiayi
             if (effectInstance?.controller?.Output != null)
             {
                 _effect = effectInstance;
+                _textureToNormal.SetSourceAndGenerate(_effect.controller.SaturationBlur);
+                
                 ExtractPoints();
             }
             else
@@ -260,8 +264,7 @@ namespace Chiayi
             _visualEffect.SetGraphicsBuffer("SamplesUV", PointBuffer);
             _visualEffect.SetUInt("SamplesCount", pointCount);
             _visualEffect.SetTexture("SourceTex", ActiveSourceTexture);
-            // _visualEffect.SetFloat("Ratio", Ratio);
-            // _visualEffect.SetVector4("BgColor", BgColor);
+            _visualEffect.SetTexture("NormalTex", _textureToNormal.normalTexture);
             
             string brightnessType = _usePerceptualBrightness ? "perceptual" : "maximum RGB";
             Debug.Log($"PixelExtractor: Extracted {pointCount} points using {brightnessType} brightness (threshold: {_brightnessThreshold:F3}) from {ActiveSourceTexture.width}x{ActiveSourceTexture.height} texture", this);

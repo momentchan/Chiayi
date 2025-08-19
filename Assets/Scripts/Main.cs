@@ -177,9 +177,6 @@ namespace Chiayi
         /// </summary>
         private IEnumerator TransitionCoroutine()
         {
-
-            _pixelExtractor.Execute(NextEffect);
-
             // 1) Initialize next effect
             var nextEffect = NextEffect;
             if (nextEffect != null)
@@ -197,6 +194,8 @@ namespace Chiayi
 
             // 2) Allow one frame for controller to generate valid output
             yield return null;
+
+
 
             // 3) Record starting values for smooth interpolation
             var startValues = new TransitionState
@@ -219,6 +218,8 @@ namespace Chiayi
 
             // 6) Finalize values and advance to next effect
             FinalizeTransition(targetValues);
+
+            _pixelExtractor.Execute(nextEffect);
         }
         
         /// <summary>

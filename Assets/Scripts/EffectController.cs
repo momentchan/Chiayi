@@ -13,23 +13,23 @@ namespace Chiayi
         [SerializeField] private RenderTextureFormat _textureFormat = RenderTextureFormat.ARGBFloat;
 
         [Header("Effect Properties")]
-        [field: SerializeField] public Texture2D Source { get; set; }
-        [field: SerializeField] public Color BgColor { get; set; } = Color.black;
-        [field: SerializeField, Range(0f, 2f)] public float Ratio { get; set; } = 1f;
+        public Texture2D Source { get; set; }
+        public Color BgColor { get; set; } = Color.black;
+        public float Ratio { get; set; } = 1f;
 
         #region RenderTextures
         // Cached render textures - lazily created
         private readonly Dictionary<string, RenderTexture> _renderTextures = new Dictionary<string, RenderTexture>();
 
         // Texture accessors with lazy creation
-        private RenderTexture output => GetOrCreateRenderTexture("output");
-        private RenderTexture mask => GetOrCreateRenderTexture("mask");
-        private RenderTexture maskBlur => GetOrCreateRenderTexture("maskBlur");
-        private RenderTexture edge => GetOrCreateRenderTexture("edge");
-        private RenderTexture shift => GetOrCreateRenderTexture("shift");
-        private RenderTexture saturation => GetOrCreateRenderTexture("saturation");
-        private RenderTexture saturationBlur => GetOrCreateRenderTexture("saturationBlur");
-        private RenderTexture composite => GetOrCreateRenderTexture("composite");
+        public RenderTexture Output => GetOrCreateRenderTexture("output");
+        public RenderTexture Mask => GetOrCreateRenderTexture("mask");
+        public RenderTexture MaskBlur => GetOrCreateRenderTexture("maskBlur");
+        public RenderTexture Edge => GetOrCreateRenderTexture("edge");
+        public RenderTexture Shift => GetOrCreateRenderTexture("shift");
+        public RenderTexture Saturation => GetOrCreateRenderTexture("saturation");
+        public RenderTexture SaturationBlur => GetOrCreateRenderTexture("saturationBlur");
+        public RenderTexture Composite => GetOrCreateRenderTexture("composite");
         #endregion
 
         #region Shaders and Materials
@@ -65,8 +65,6 @@ namespace Chiayi
         [SerializeField] private CompositeSetting _compositeSetting;
 
 
-        // IEffect interface implementation (Output only, others are auto-implemented above)
-        public RenderTexture Output => output;
 
         /// <summary>
         /// Get or create a render texture with the specified name
@@ -185,17 +183,17 @@ namespace Chiayi
         {
             if (_maskSetting?.mat != null)
             {
-                _maskSetting.Update(Source, mask);
+                _maskSetting.Update(Source, Mask);
 
                 // Apply blur if blur material is available
                 if (blurMat != null)
                 {
-                    BlurUtil.BlurWithDownSample(mask, maskBlur,
+                    BlurUtil.BlurWithDownSample(Mask, MaskBlur,
                         _maskBlurParams.lod, _maskBlurParams.iterations, _maskBlurParams.step, blurMat);
                 }
                 else
                 {
-                    Graphics.Blit(mask, maskBlur); // Fallback without blur
+                    Graphics.Blit(Mask, MaskBlur); // Fallback without blur
                 }
             }
         }
@@ -204,7 +202,7 @@ namespace Chiayi
         {
             if (_edgeSetting?.mat != null)
             {
-                _edgeSetting.Update(Source, edge);
+                _edgeSetting.Update(Source, Edge);
             }
         }
 
@@ -212,7 +210,7 @@ namespace Chiayi
         {
             if (_shiftSetting?.mat != null)
             {
-                _shiftSetting.Update(Source, shift);
+                _shiftSetting.Update(Source, Shift);
             }
         }
 
@@ -220,17 +218,17 @@ namespace Chiayi
         {
             if (_saturationMaskSetting?.mat != null)
             {
-                _saturationMaskSetting.Update(Source, saturation);
+                _saturationMaskSetting.Update(Source, Saturation);
 
                 // Apply blur if blur material is available
                 if (blurMat != null)
                 {
-                    BlurUtil.BlurWithDownSample(saturation, saturationBlur,
+                    BlurUtil.BlurWithDownSample(Saturation, SaturationBlur,
                         _saturationBlurParams.lod, _saturationBlurParams.iterations, _saturationBlurParams.step, blurMat);
                 }
                 else
                 {
-                    Graphics.Blit(saturation, saturationBlur); // Fallback without blur
+                    Graphics.Blit(Saturation, SaturationBlur); // Fallback without blur
                 }
             }
         }
@@ -242,12 +240,12 @@ namespace Chiayi
                 // Set all input textures for composite
                 var mat = _compositeSetting.mat;
                 mat.SetTexture("_SourceTex", Source);
-                mat.SetTexture("_EdgeTex", edge);
-                mat.SetTexture("_ShiftTex", shift);
-                mat.SetTexture("_MaskTex", maskBlur);
-                mat.SetTexture("_SaturationTex", saturationBlur);
+                mat.SetTexture("_EdgeTex", Edge);
+                mat.SetTexture("_ShiftTex", Shift);
+                mat.SetTexture("_MaskTex", MaskBlur);
+                mat.SetTexture("_SaturationTex", SaturationBlur);
 
-                _compositeSetting.Update(Source, composite);
+                _compositeSetting.Update(Source, Composite);
             }
         }
 
@@ -256,7 +254,7 @@ namespace Chiayi
         /// </summary>
         private void GenerateOutput()
         {
-            if (output == null)
+            if (Output == null)
             {
                 Debug.LogWarning("EffectController: Output render texture is not assigned", this);
                 return;
@@ -265,12 +263,12 @@ namespace Chiayi
             Texture sourceTexture = GetEffectTexture(_effectType);
             if (sourceTexture != null)
             {
-                Graphics.Blit(sourceTexture, output);
+                Graphics.Blit(sourceTexture, Output);
             }
             else
             {
                 // Fallback to original texture
-                Graphics.Blit(Source, output);
+                Graphics.Blit(Source, Output);
             }
         }
 
@@ -282,13 +280,13 @@ namespace Chiayi
             return effectType switch
             {
                 EffectType.Original => Source,
-                EffectType.Mask => mask,
-                EffectType.MaskBlur => maskBlur,
-                EffectType.Edge => edge,
-                EffectType.Shift => shift,
-                EffectType.SaturationMask => saturation,
-                EffectType.SaturationMaskBlur => saturationBlur,
-                EffectType.Composite => composite,
+                EffectType.Mask => Mask,
+                EffectType.MaskBlur => MaskBlur,
+                EffectType.Edge => Edge,
+                EffectType.Shift => Shift,
+                EffectType.SaturationMask => Saturation,
+                EffectType.SaturationMaskBlur => SaturationBlur,
+                EffectType.Composite => Composite,
                 _ => Source
             };
         }
@@ -296,14 +294,14 @@ namespace Chiayi
         [ContextMenu("Save Texture")]
         public void SaveTexture()
         {
-            if (output != null)
+            if (Output != null)
             {
                 try
                 {
                     string timestamp = System.DateTime.Now.ToString("yyMMdd_HHmmss");
                     string effectName = _effectType.ToString();
                     string path = $"Assets/Resource/output_{effectName}_{timestamp}.png";
-                    TextureIO.SaveRenderTextureToPNG(output, path);
+                    TextureIO.SaveRenderTextureToPNG(Output, path);
                     Debug.Log($"Texture saved to: {path}", this);
                 }
                 catch (System.Exception ex)
@@ -514,6 +512,7 @@ namespace Chiayi
                 [Range(0f, 1f)] public float randomness = 0.5f;
                 [Range(0f, 5f)] public float strength = 0.5f;
                 [Range(0f, 1f)] public float sigma = 0.5f;
+                [Range(0f, 0.5f)] public float speed = 0f;
                 public Vector2 wave = Vector2.one;
 
                 public void Update(Material mat, int index)
@@ -526,6 +525,7 @@ namespace Chiayi
                     mat.SetFloat($"_Sigma{index}", sigma);
                     mat.SetFloat($"_Randomness{index}", randomness);
                     mat.SetVector($"_Wave{index}", wave);
+                    mat.SetFloat($"_Speed{index}", speed);
                 }
             }
         }

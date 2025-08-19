@@ -21,6 +21,7 @@ void Shifting_float(
     float Strength,
     float RandomStrength, 
     float Seed,
+    float Time,
     out float4 Out
 )
 {
@@ -55,7 +56,7 @@ void Shifting_float(
         float p = lerp(-MaxSpanUV, MaxSpanUV, tJittered);
 
         // 波動方向
-        float2 dir = float2(1, sin(t * WaveFreq) * WaveStrength);
+        float2 dir = float2(1, sin(t * WaveFreq + Time) * WaveStrength);
 
         float2 offset = dir * p;
 
