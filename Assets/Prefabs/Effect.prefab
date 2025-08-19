@@ -62,7 +62,7 @@ MonoBehaviour:
     threshold: 0.109
     softness: 0.0264
     gain: 0.71
-    strength: 10
+    strength: 5
   _shiftSetting:
     mat: {fileID: 0}
     pulseSpeed: 0.1
@@ -95,5 +95,5 @@ MonoBehaviour:
     mat: {fileID: 0}
     baseStrength: 2
     noiseOffset: 0.0481
-    fbmParams: {x: 1.38, y: 0.1, z: 0, w: 1}
+    fbmParams: {x: 1.38, y: 0.2, z: 0, w: 1}
     distortionParams: {x: 5, y: 0.01, z: 0.01, w: 1}

@@ -13,6 +13,7 @@ namespace Chiayi
         [Header("Output Configuration")]
         [SerializeField] private Material _outputMaterial;
         [SerializeField] private RenderTexture _captureTexture;
+        [SerializeField] private OscPort _osc;
         [SerializeField] private string _outputFolder = "C:/Chiayi/";
 
         [Header("Transition Settings")]
@@ -195,8 +196,6 @@ namespace Chiayi
             // 2) Allow one frame for controller to generate valid output
             yield return null;
 
-
-
             // 3) Record starting values for smooth interpolation
             var startValues = new TransitionState
             {
@@ -218,8 +217,9 @@ namespace Chiayi
 
             // 6) Finalize values and advance to next effect
             FinalizeTransition(targetValues);
-
             _pixelExtractor.Execute(nextEffect);
+
+            yield return SaveCaptureTexture();
         }
         
         /// <summary>
@@ -378,11 +378,20 @@ namespace Chiayi
                 
                 TextureIO.SaveRenderTextureToPNG(_captureTexture, fullPath);
                 Debug.Log($"Main: Saved capture to {fullPath}", this);
+                SendPathToOSC(fullPath);
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Main: Failed to save capture texture - {ex.Message}", this);
             }
+        }
+
+
+        private void SendPathToOSC(string path)
+        {
+            var encoder = new MessageEncoder("/path");
+            encoder.Add(path);
+            _osc.Send(encoder);
         }
         
         /// <summary>
