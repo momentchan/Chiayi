@@ -455,7 +455,7 @@ namespace Chiayi
             [Range(0f, 1f)] public float threshold = 0.3f;
             [Range(0f, 0.1f)] public float softness = 0.03f;
             [Range(0f, 10f)] public float gain = 0.98f;
-            [Range(0f, 5f)] public float strength = 1f;
+            [Range(0f, 20f)] public float strength = 1f;
 
             public void Update(Texture source, RenderTexture target)
             {
@@ -482,6 +482,11 @@ namespace Chiayi
             public Material mat;
 
             [Header("Shift Parameters")]
+            public float pulseSpeed = 0f;
+
+            // pulseFreq, pulseStrength, pulseIntensityChange, pulseWidth
+            public Vector4 pulseParams = new Vector4(5f, 0.5f, 0.1f, 0.1f);
+
             public ShiftParams shiftParams1 = new ShiftParams();
             public ShiftParams shiftParams2 = new ShiftParams();
 
@@ -496,6 +501,8 @@ namespace Chiayi
                 shiftParams1.Update(mat, 1);
                 shiftParams2.Update(mat, 2);
                 mat.SetTexture("_SourceTex", source);
+                mat.SetFloat("_PulseSpeed", pulseSpeed);
+                mat.SetVector("_PulseParams", pulseParams);
 
                 Graphics.Blit(source, target, mat, 0);
             }
@@ -512,7 +519,7 @@ namespace Chiayi
                 [Range(0f, 1f)] public float randomness = 0.5f;
                 [Range(0f, 5f)] public float strength = 0.5f;
                 [Range(0f, 1f)] public float sigma = 0.5f;
-                [Range(0f, 0.5f)] public float speed = 0f;
+
                 public Vector2 wave = Vector2.one;
 
                 public void Update(Material mat, int index)
@@ -525,7 +532,6 @@ namespace Chiayi
                     mat.SetFloat($"_Sigma{index}", sigma);
                     mat.SetFloat($"_Randomness{index}", randomness);
                     mat.SetVector($"_Wave{index}", wave);
-                    mat.SetFloat($"_Speed{index}", speed);
                 }
             }
         }
@@ -565,7 +571,10 @@ namespace Chiayi
             public Material mat;
 
             [Header("Composite Parameters")]
+
+            public float baseStrength = 1f;
             [Range(0f, 0.1f)] public float noiseOffset = 0.05f;
+
             public Vector4 fbmParams = new Vector4(1, 1, 1, 1);
             public Vector4 distortionParams = new Vector4(3f, 0.005f, 0.04f, 1);
 
@@ -577,6 +586,7 @@ namespace Chiayi
                     return;
                 }
 
+                mat.SetFloat("_BaseStrength", baseStrength);
                 mat.SetFloat("_NoiseOffset", noiseOffset);
                 mat.SetVector("_FbmParams", fbmParams);
                 mat.SetVector("_DistortionParams", distortionParams);

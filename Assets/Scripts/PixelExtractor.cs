@@ -32,7 +32,7 @@ namespace Chiayi
         /// <summary>
         /// Get the active source texture (either from IEffect.Source or _sourceTexture)
         /// </summary>
-        private Texture ActiveSourceTexture => _effect.controller.Output;
+        private Texture ActiveSourceTexture => _effect.controller.Edge;
         
         /// <summary>
         /// Get buffer for extracted points (lazy initialization)

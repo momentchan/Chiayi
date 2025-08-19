@@ -74,13 +74,18 @@ Material:
     - _MaxSpan2: 0.17
     - _Power: 1
     - _Power1: 1
+    - _Pulse: 0
+    - _PulseStrength: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Randomness1: 0.568
     - _Randomness2: 0
+    - _Ratio: 0
     - _Sigma: 0.084
     - _Sigma1: 0.097
     - _Sigma2: 0.323
+    - _Speed1: 0
+    - _Speed2: 0
     - _StepSize: 0.11
     - _Steps: 12.4
     - _Steps1: 3.71

@@ -59,12 +59,14 @@ MonoBehaviour:
     step: 2.8
   _edgeSetting:
     mat: {fileID: 0}
-    threshold: 0.304
-    softness: 0.0106
-    gain: 0.42
-    strength: 2.86
+    threshold: 0.109
+    softness: 0.0264
+    gain: 0.71
+    strength: 10
   _shiftSetting:
     mat: {fileID: 0}
+    pulseSpeed: 0.1
+    pulseParams: {x: 2, y: 5, z: 0.2, w: 0.1}
     shiftParams1:
       enable: 1
       steps: 8.3
@@ -72,7 +74,6 @@ MonoBehaviour:
       randomness: 0.726
       strength: 0.629
       sigma: 0.106
-      speed: 0
       wave: {x: 0.4, y: 6}
     shiftParams2:
       enable: 1
@@ -81,7 +82,6 @@ MonoBehaviour:
       randomness: 0
       strength: 0.05
       sigma: 1
-      speed: 0
       wave: {x: 0.4, y: 6}
   _saturationMaskSetting:
     mat: {fileID: 0}
@@ -93,6 +93,7 @@ MonoBehaviour:
     step: 2
   _compositeSetting:
     mat: {fileID: 0}
+    baseStrength: 2
     noiseOffset: 0.0481
-    fbmParams: {x: 3, y: 0.02, z: 1, w: 1}
+    fbmParams: {x: 1.38, y: 0.1, z: 0, w: 1}
     distortionParams: {x: 5, y: 0.01, z: 0.01, w: 1}
