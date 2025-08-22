@@ -21,21 +21,23 @@ namespace Chiayi
         [SerializeField, Range(0f, 1f)] private float _previousLayerOpacity = 0.2f;
         [SerializeField, Min(0f)] private float _transitionDuration = 0.8f;
         [SerializeField] private AnimationCurve _transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        [SerializeField] private AnimationCurve _pixelExtractorCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         [Header("Effect Instances")]
         [SerializeField] private List<EffectInstance> _effectInstances = new List<EffectInstance>();
 
         [SerializeField] private PixelExtractor _pixelExtractor;
-        
+
         // State management
         private int _currentEffectIndex = 0;
         private Coroutine _transitionCoroutine;
-        
+
         // Constants
         private const int REQUIRED_EFFECT_COUNT = 3;
+        private const string UPLOAD_PATH_OSC_ADDRESS = "/UploadPath";
 
         #region Effect Instance Management
-        
+
         /// <summary>
         /// Safely wrap index within effect instances bounds
         /// </summary>
@@ -44,32 +46,32 @@ namespace Chiayi
             if (_effectInstances.Count == 0) return 0;
             return ((index % _effectInstances.Count) + _effectInstances.Count) % _effectInstances.Count;
         }
-        
+
         /// <summary>
         /// Get the previous effect instance in the sequence
         /// </summary>
         private EffectInstance PreviousEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex - 1)] : null;
-        
+
         /// <summary>
         /// Get the current active effect instance
         /// </summary>
         private EffectInstance CurrentEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex)] : null;
-        
+
         /// <summary>
         /// Get the next effect instance in the sequence
         /// </summary>
         private EffectInstance NextEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex + 1)] : null;
-        
+
         /// <summary>
         /// Check if we have the minimum required effects for proper operation
         /// </summary>
         private bool IsValidEffectSetup() => _effectInstances != null && _effectInstances.Count >= REQUIRED_EFFECT_COUNT;
-        
+
         #endregion
 
 
         #region Public API
-        
+
         /// <summary>
         /// Handle incoming OSC message with texture path
         /// </summary>
@@ -83,7 +85,7 @@ namespace Chiayi
                     Debug.LogWarning("Main: Received empty OSC message");
                     return;
                 }
-                
+
                 var texturePath = (string)message.data[0];
                 LoadAndSwitchTexture(texturePath);
             }
@@ -92,7 +94,7 @@ namespace Chiayi
                 Debug.LogError($"Main: Error processing OSC message - {ex.Message}", this);
             }
         }
-        
+
         /// <summary>
         /// Load texture from file and initiate transition
         /// </summary>
@@ -103,7 +105,7 @@ namespace Chiayi
                 Debug.LogWarning("Main: Invalid file path provided", this);
                 return;
             }
-            
+
             TextureIO.LoadTextureFromFile(filePath, (loadedTexture) =>
             {
                 if (loadedTexture != null)
@@ -117,7 +119,7 @@ namespace Chiayi
                 }
             });
         }
-        
+
         /// <summary>
         /// Begin transition to new texture
         /// </summary>
@@ -128,7 +130,7 @@ namespace Chiayi
                 Debug.LogWarning("Main: Cannot start transition - invalid effect setup", this);
                 return;
             }
-            
+
             var nextEffect = NextEffect;
             if (nextEffect?.controller == null)
             {
@@ -144,7 +146,7 @@ namespace Chiayi
             StopCurrentTransition();
             _transitionCoroutine = StartCoroutine(TransitionCoroutine());
         }
-        
+
         /// <summary>
         /// Test method for manual transitions (bound to T key)
         /// </summary>
@@ -157,11 +159,11 @@ namespace Chiayi
                 _transitionCoroutine = StartCoroutine(TransitionCoroutine());
             }
         }
-        
+
         #endregion
 
         #region Transition System
-        
+
         /// <summary>
         /// Stop current transition if running
         /// </summary>
@@ -173,7 +175,7 @@ namespace Chiayi
                 _transitionCoroutine = null;
             }
         }
-        
+
         /// <summary>
         /// Main transition coroutine: Previous → 0, Current → prevFloor, Next → 1
         /// </summary>
@@ -189,7 +191,7 @@ namespace Chiayi
                     nextEffect.controller.Source = nextEffect.source;
                     nextEffect.controller.Ratio = 0f;
                 }
-                
+
                 nextEffect.ratio = 0f;  // Internal effect starts at 0
                 nextEffect.blend = 1f;  // External blend at full (will be controlled by ratio)
             }
@@ -213,30 +215,35 @@ namespace Chiayi
                 NextRatio = 1f
             };
 
+            _pixelExtractor.EnableSpawn(false);
             // 5) Animate transition
             yield return StartCoroutine(AnimateTransition(startValues, targetValues));
 
             // 6) Finalize values and advance to next effect
             FinalizeTransition(targetValues);
+            
+            _pixelExtractor.EnableSpawn(true);
             _pixelExtractor.Execute(nextEffect);
 
             yield return SaveCaptureTexture();
         }
-        
+
         /// <summary>
         /// Animate the transition between start and target values
         /// </summary>
         private IEnumerator AnimateTransition(TransitionState startValues, TransitionState targetValues)
         {
             float elapsedTime = 0f;
-            
+
             while (elapsedTime < _transitionDuration)
             {
                 elapsedTime += Time.deltaTime;
                 float normalizedTime = Mathf.Clamp01(elapsedTime / Mathf.Max(0.0001f, _transitionDuration));
-                
+
                 // Apply easing curve if available
                 float easedTime = _transitionCurve != null ? _transitionCurve.Evaluate(normalizedTime) : normalizedTime;
+
+                _pixelExtractor.SetTransitionRatio(_pixelExtractorCurve.Evaluate(easedTime));
 
                 // Interpolate all values
                 if (PreviousEffect != null)
@@ -251,7 +258,7 @@ namespace Chiayi
                 yield return null;
             }
         }
-        
+
         /// <summary>
         /// Finalize transition by setting exact target values and advancing index
         /// </summary>
@@ -266,7 +273,7 @@ namespace Chiayi
             _currentEffectIndex = WrapIndex(_currentEffectIndex + 1);
             _transitionCoroutine = null;
         }
-        
+
         /// <summary>
         /// Helper struct to hold transition state values
         /// </summary>
@@ -276,11 +283,11 @@ namespace Chiayi
             public float CurrentBlend;
             public float NextRatio;
         }
-        
+
         #endregion
 
         #region Update and Rendering
-        
+
         void Update()
         {
             if (!IsValidEffectSetup() || _outputMaterial == null)
@@ -288,14 +295,14 @@ namespace Chiayi
 
             // Update all effect instances
             UpdateEffectInstances();
-            
+
             // Update output material with current textures and blend values
             UpdateOutputMaterial();
 
             // Handle debug input
             HandleDebugInput();
         }
-        
+
         /// <summary>
         /// Update all effect controller instances
         /// </summary>
@@ -305,7 +312,7 @@ namespace Chiayi
             CurrentEffect?.UpdateController();
             NextEffect?.UpdateController();
         }
-        
+
         /// <summary>
         /// Update the output material with current textures and blend values
         /// </summary>
@@ -321,7 +328,7 @@ namespace Chiayi
             _outputMaterial.SetFloat("_CurrentBlend", GetSafeBlendValue(CurrentEffect));
             _outputMaterial.SetFloat("_NextBlend", GetSafeBlendValue(NextEffect));
         }
-        
+
         /// <summary>
         /// Handle debug keyboard input
         /// </summary>
@@ -332,7 +339,7 @@ namespace Chiayi
                 TestTransition();
             }
         }
-        
+
         /// <summary>
         /// Get texture from effect instance, with fallback to black texture
         /// </summary>
@@ -350,11 +357,11 @@ namespace Chiayi
         {
             return instance?.blend ?? fallback;
         }
-        
+
         #endregion
 
         #region Utility Methods
-        
+
         /// <summary>
         /// Save current capture texture to file
         /// </summary>
@@ -363,7 +370,7 @@ namespace Chiayi
             _captureMaterial.SetTexture("_MainTex", CurrentEffect.controller.Output);
 
             yield return new WaitForSeconds(1f);
-            
+
             if (_captureTexture == null)
             {
                 Debug.LogWarning("Main: No capture texture assigned for saving", this);
@@ -378,7 +385,7 @@ namespace Chiayi
 
                 // Ensure directory exists
                 Directory.CreateDirectory(_outputFolder);
-                
+
                 TextureIO.SaveRenderTextureToPNG(_captureTexture, fullPath);
                 Debug.Log($"Main: Saved capture to {fullPath}", this);
                 SendPathToOSC(fullPath);
@@ -392,11 +399,11 @@ namespace Chiayi
 
         private void SendPathToOSC(string path)
         {
-            var encoder = new MessageEncoder("/path");
+            var encoder = new MessageEncoder(UPLOAD_PATH_OSC_ADDRESS);
             encoder.Add(path);
             _osc.Send(encoder);
         }
-        
+
         /// <summary>
         /// Validate the current setup and log any issues
         /// </summary>
@@ -404,20 +411,20 @@ namespace Chiayi
         public void ValidateSetup()
         {
             var issues = new List<string>();
-            
+
             if (_outputMaterial == null)
                 issues.Add("Output material is not assigned");
-                
+
             if (_effectInstances == null || _effectInstances.Count < REQUIRED_EFFECT_COUNT)
                 issues.Add($"Need at least {REQUIRED_EFFECT_COUNT} effect instances");
-                
+
             for (int i = 0; i < _effectInstances.Count; i++)
             {
                 var effect = _effectInstances[i];
                 if (effect?.controller == null)
                     issues.Add($"Effect instance {i} has no controller assigned");
             }
-            
+
             if (issues.Count > 0)
             {
                 Debug.LogWarning($"Main setup issues:\n- {string.Join("\n- ", issues)}", this);
@@ -427,12 +434,12 @@ namespace Chiayi
                 Debug.Log("Main setup is valid!", this);
             }
         }
-        
+
         void OnDestroy()
         {
             StopCurrentTransition();
         }
-        
+
         #endregion
     }
 
@@ -444,26 +451,26 @@ namespace Chiayi
     {
         [Header("Effect Controller")]
         public EffectController controller;
-        
+
         [Header("Source")]
         public Texture2D source;
-        
+
         [Header("Parameters")]
         [Range(0f, 1f)] public float ratio = 1f;      // Internal effect intensity
         [Range(0f, 1f)] public float blend = 1f;      // External blend amount
         public Color bgColor = Color.black;            // Background color
-        
+
         /// <summary>
         /// Update the associated effect controller with current parameters
         /// </summary>
         public void UpdateController()
         {
-            if (controller == null) 
+            if (controller == null)
             {
                 Debug.LogWarning("EffectInstance: No controller assigned");
                 return;
             }
-            
+
             try
             {
                 controller.Source = source;
@@ -475,12 +482,12 @@ namespace Chiayi
                 Debug.LogError($"EffectInstance: Error updating controller - {ex.Message}");
             }
         }
-        
+
         /// <summary>
         /// Check if this effect instance is properly configured
         /// </summary>
         public bool IsValid => controller != null;
-        
+
         /// <summary>
         /// Get the output texture from the controller, if available
         /// </summary>

@@ -14,14 +14,19 @@ namespace Chiayi
         [SerializeField] private ComputeShader _extractionShader;
 
         [SerializeField] private TextureToNormal _textureToNormal;
-        
+        [SerializeField] private int _spawnRate = 32;
+
         [Header("Brightness Extraction Settings")]
         [SerializeField, Range(0f, 1f)] private float _brightnessThreshold = 0.1f;
         [SerializeField] private bool _usePerceptualBrightness = true;
-        
 
         #region Private Fields and Properties
-        
+
+        public void SetTransitionRatio(float ratio)
+        {
+            _visualEffect.SetFloat("Ratio", ratio);
+        }
+
         // Graphics buffers for compute shader
         private GraphicsBuffer _pointBuffer;
         private GraphicsBuffer _countBuffer;
@@ -111,7 +116,12 @@ namespace Chiayi
                 Debug.LogWarning("PixelExtractor: Invalid effect instance provided for execution", this);
             }
         }
-        
+
+        public void EnableSpawn(bool enable)
+        {
+            _visualEffect.SetInt("SpawnRate", enable ? _spawnRate : 0);
+        }
+
         /// <summary>
         /// Extract points from the current source texture
         /// </summary>
