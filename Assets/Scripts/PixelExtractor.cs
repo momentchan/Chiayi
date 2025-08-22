@@ -9,16 +9,14 @@ namespace Chiayi
     /// </summary>
     public class PixelExtractor : MonoBehaviour
     {
+        [Header("Configuration")]
+        [SerializeField] private EffectConfiguration _config;
+        
         [Header("VFX Configuration")]
         [SerializeField] private VisualEffect _visualEffect;
         [SerializeField] private ComputeShader _extractionShader;
 
         [SerializeField] private TextureToNormal _textureToNormal;
-        [SerializeField] private int _spawnRate = 32;
-
-        [Header("Brightness Extraction Settings")]
-        [SerializeField, Range(0f, 1f)] private float _brightnessThreshold = 0.1f;
-        [SerializeField] private bool _usePerceptualBrightness = true;
 
         #region Private Fields and Properties
 
@@ -119,7 +117,8 @@ namespace Chiayi
 
         public void EnableSpawn(bool enable)
         {
-            _visualEffect.SetInt("SpawnRate", enable ? _spawnRate : 0);
+            var spawnRate = _config?.spawnRate ?? 32;
+            _visualEffect.SetInt("SpawnRate", enable ? spawnRate : 0);
         }
 
         /// <summary>
@@ -249,8 +248,10 @@ namespace Chiayi
             // Set compute shader parameters
             _extractionShader.SetTexture(0, "_Tex", texture);
             _extractionShader.SetInts("_Size", texture.width, texture.height);
-            _extractionShader.SetFloat("_Epsilon", _brightnessThreshold);
-            _extractionShader.SetBool("_UsePerceptualBrightness", _usePerceptualBrightness);
+            var brightnessThreshold = _config?.brightnessThreshold ?? 0.1f;
+            var usePerceptualBrightness = _config?.usePerceptualBrightness ?? true;
+            _extractionShader.SetFloat("_Epsilon", brightnessThreshold);
+            _extractionShader.SetBool("_UsePerceptualBrightness", usePerceptualBrightness);
             _extractionShader.SetBuffer(0, "_OutUV", PointBuffer);
             
             // Dispatch compute shader
@@ -276,8 +277,10 @@ namespace Chiayi
             _visualEffect.SetTexture("SourceTex", ActiveSourceTexture);
             _visualEffect.SetTexture("NormalTex", _textureToNormal.normalTexture);
             
-            string brightnessType = _usePerceptualBrightness ? "perceptual" : "maximum RGB";
-            Debug.Log($"PixelExtractor: Extracted {pointCount} points using {brightnessType} brightness (threshold: {_brightnessThreshold:F3}) from {ActiveSourceTexture.width}x{ActiveSourceTexture.height} texture", this);
+            var usePerceptualBrightness = _config?.usePerceptualBrightness ?? true;
+            var brightnessThreshold = _config?.brightnessThreshold ?? 0.1f;
+            string brightnessType = usePerceptualBrightness ? "perceptual" : "maximum RGB";
+            Debug.Log($"PixelExtractor: Extracted {pointCount} points using {brightnessType} brightness (threshold: {brightnessThreshold:F3}) from {ActiveSourceTexture.width}x{ActiveSourceTexture.height} texture", this);
         }
         
         /// <summary>

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
-using Osc;
 using UnityEngine;
 
 namespace Chiayi
@@ -10,90 +9,105 @@ namespace Chiayi
     [ExecuteInEditMode]
     public class Main : MonoBehaviour
     {
+        [Header("Configuration")]
+        [SerializeField] private EffectConfiguration _config;
+        
         [Header("Output Configuration")]
-        [SerializeField] private string _outputFolder = "C:/Chiayi/";
         [SerializeField] private Material _outputMaterial;
         [SerializeField] private Material _captureMaterial;
         [SerializeField] private RenderTexture _captureTexture;
-        [SerializeField] private OscPort _osc;
-
-        [Header("Transition Settings")]
-        [SerializeField, Range(0f, 1f)] private float _previousLayerOpacity = 0.2f;
-        [SerializeField, Min(0f)] private float _transitionDuration = 0.8f;
-        [SerializeField] private AnimationCurve _transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-        [SerializeField] private AnimationCurve _pixelExtractorCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         [Header("Effect Instances")]
         [SerializeField] private List<EffectInstance> _effectInstances = new List<EffectInstance>();
 
-        [SerializeField] private PixelExtractor _pixelExtractor;
+        [Header("Dependencies")]
+        [SerializeField] private EffectTransitionManager _transitionManager;
+        [SerializeField] private OscMessageHandler _oscHandler;
 
-        // State management
-        private int _currentEffectIndex = 0;
-        private Coroutine _transitionCoroutine;
+        // Events
+        public event Action<Texture2D> OnTextureLoaded;
+        public event Action<string> OnCaptureSaved;
+        public event Action<Exception> OnError;
 
-        // Constants
-        private const int REQUIRED_EFFECT_COUNT = 3;
-        private const string UPLOAD_PATH_OSC_ADDRESS = "/UploadPath";
+        #region Initialization
+
+        void Start()
+        {
+            InitializeComponents();
+            SubscribeToEvents();
+        }
+
+        /// <summary>
+        /// Initialize all components and validate setup
+        /// </summary>
+        private void InitializeComponents()
+        {
+            // Initialize transition manager
+            if (_transitionManager != null)
+            {
+                _transitionManager.Initialize(_effectInstances);
+            }
+
+            // Validate configuration
+            if (_config != null)
+            {
+                var validation = _config.Validate();
+                if (!validation.IsValid)
+                {
+                    Debug.LogWarning($"Main: Configuration validation failed:\n{validation}", this);
+                }
+            }
+
+            Debug.Log("Main: Components initialized", this);
+        }
+
+        /// <summary>
+        /// Subscribe to component events
+        /// </summary>
+        private void SubscribeToEvents()
+        {
+            if (_oscHandler != null)
+            {
+                _oscHandler.OnTexturePathReceived += LoadAndSwitchTexture;
+                _oscHandler.OnOscError += OnError;
+            }
+
+            if (_transitionManager != null)
+            {
+                _transitionManager.OnTransitionStarted += OnTransitionStarted;
+                _transitionManager.OnTransitionCompleted += OnTransitionCompleted;
+                _transitionManager.OnTransitionError += OnError;
+            }
+        }
+
+        #endregion
 
         #region Effect Instance Management
 
         /// <summary>
-        /// Safely wrap index within effect instances bounds
-        /// </summary>
-        private int WrapIndex(int index)
-        {
-            if (_effectInstances.Count == 0) return 0;
-            return ((index % _effectInstances.Count) + _effectInstances.Count) % _effectInstances.Count;
-        }
-
-        /// <summary>
         /// Get the previous effect instance in the sequence
         /// </summary>
-        private EffectInstance PreviousEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex - 1)] : null;
+        private EffectInstance PreviousEffect => _transitionManager?.PreviousEffect;
 
         /// <summary>
         /// Get the current active effect instance
         /// </summary>
-        private EffectInstance CurrentEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex)] : null;
+        private EffectInstance CurrentEffect => _transitionManager?.CurrentEffect;
 
         /// <summary>
         /// Get the next effect instance in the sequence
         /// </summary>
-        private EffectInstance NextEffect => IsValidEffectSetup() ? _effectInstances[WrapIndex(_currentEffectIndex + 1)] : null;
+        private EffectInstance NextEffect => _transitionManager?.NextEffect;
 
         /// <summary>
         /// Check if we have the minimum required effects for proper operation
         /// </summary>
-        private bool IsValidEffectSetup() => _effectInstances != null && _effectInstances.Count >= REQUIRED_EFFECT_COUNT;
+        private bool IsValidEffectSetup() => _effectInstances != null && _effectInstances.Count >= (_config?.requiredEffectCount ?? 3);
 
         #endregion
 
 
         #region Public API
-
-        /// <summary>
-        /// Handle incoming OSC message with texture path
-        /// </summary>
-        public void OnReceivePath(OscPort.Capsule capsule)
-        {
-            try
-            {
-                var message = capsule.message;
-                if (message.data == null || message.data.Length == 0)
-                {
-                    Debug.LogWarning("Main: Received empty OSC message");
-                    return;
-                }
-
-                var texturePath = (string)message.data[0];
-                LoadAndSwitchTexture(texturePath);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Main: Error processing OSC message - {ex.Message}", this);
-            }
-        }
 
         /// <summary>
         /// Load texture from file and initiate transition
@@ -111,11 +125,14 @@ namespace Chiayi
                 if (loadedTexture != null)
                 {
                     Debug.Log($"Main: Loaded texture from {filePath}", this);
+                    OnTextureLoaded?.Invoke(loadedTexture);
                     StartTransition(loadedTexture);
                 }
                 else
                 {
-                    Debug.LogError($"Main: Failed to load texture from {filePath}", this);
+                    var error = new Exception($"Failed to load texture from {filePath}");
+                    Debug.LogError($"Main: {error.Message}", this);
+                    OnError?.Invoke(error);
                 }
             });
         }
@@ -125,26 +142,17 @@ namespace Chiayi
         /// </summary>
         public void StartTransition(Texture2D newTexture)
         {
-            if (!IsValidEffectSetup())
+            if (_transitionManager == null)
             {
-                Debug.LogWarning("Main: Cannot start transition - invalid effect setup", this);
+                Debug.LogWarning("Main: Transition manager not assigned", this);
                 return;
             }
 
-            var nextEffect = NextEffect;
-            if (nextEffect?.controller == null)
+            var result = _transitionManager.StartTransition(newTexture);
+            if (!result.IsSuccess)
             {
-                Debug.LogWarning("Main: Next effect or controller is null", this);
-                return;
+                Debug.LogWarning($"Main: {result.ErrorMessage}", this);
             }
-
-            // Set up the next effect with new texture
-            nextEffect.source = newTexture;
-            nextEffect.controller.Source = newTexture;
-
-            // Stop any existing transition and start new one
-            StopCurrentTransition();
-            _transitionCoroutine = StartCoroutine(TransitionCoroutine());
         }
 
         /// <summary>
@@ -153,135 +161,38 @@ namespace Chiayi
         [ContextMenu("Test Transition")]
         public void TestTransition()
         {
-            if (IsValidEffectSetup())
+            if (_transitionManager == null)
             {
-                StopCurrentTransition();
-                _transitionCoroutine = StartCoroutine(TransitionCoroutine());
+                Debug.LogWarning("Main: Transition manager not assigned", this);
+                return;
+            }
+
+            var result = _transitionManager.TestTransition();
+            if (!result.IsSuccess)
+            {
+                Debug.LogWarning($"Main: {result.ErrorMessage}", this);
             }
         }
 
         #endregion
 
-        #region Transition System
+        #region Event Handlers
 
         /// <summary>
-        /// Stop current transition if running
+        /// Handle transition started event
         /// </summary>
-        private void StopCurrentTransition()
+        private void OnTransitionStarted(EffectInstance effect)
         {
-            if (_transitionCoroutine != null)
-            {
-                StopCoroutine(_transitionCoroutine);
-                _transitionCoroutine = null;
-            }
+            Debug.Log($"Main: Transition started to effect {effect?.controller?.name ?? "unknown"}", this);
         }
 
         /// <summary>
-        /// Main transition coroutine: Previous → 0, Current → prevFloor, Next → 1
+        /// Handle transition completed event
         /// </summary>
-        private IEnumerator TransitionCoroutine()
+        private void OnTransitionCompleted(EffectInstance effect)
         {
-            // 1) Initialize next effect
-            var nextEffect = NextEffect;
-            if (nextEffect != null)
-            {
-                // Ensure next effect starts clean
-                if (nextEffect.controller != null)
-                {
-                    nextEffect.controller.Source = nextEffect.source;
-                    nextEffect.controller.Ratio = 0f;
-                }
-
-                nextEffect.ratio = 0f;  // Internal effect starts at 0
-                nextEffect.blend = 1f;  // External blend at full (will be controlled by ratio)
-            }
-
-            // 2) Allow one frame for controller to generate valid output
-            yield return null;
-
-            // 3) Record starting values for smooth interpolation
-            var startValues = new TransitionState
-            {
-                PreviousBlend = PreviousEffect?.blend ?? 0f,
-                CurrentBlend = CurrentEffect?.blend ?? 0f,
-                NextRatio = NextEffect?.ratio ?? 0f
-            };
-
-            // 4) Define target values
-            var targetValues = new TransitionState
-            {
-                PreviousBlend = 0f,
-                CurrentBlend = _previousLayerOpacity,
-                NextRatio = 1f
-            };
-
-            _pixelExtractor.EnableSpawn(false);
-            // 5) Animate transition
-            yield return StartCoroutine(AnimateTransition(startValues, targetValues));
-
-            // 6) Finalize values and advance to next effect
-            FinalizeTransition(targetValues);
-            
-            _pixelExtractor.EnableSpawn(true);
-            _pixelExtractor.Execute(nextEffect);
-
-            yield return SaveCaptureTexture();
-        }
-
-        /// <summary>
-        /// Animate the transition between start and target values
-        /// </summary>
-        private IEnumerator AnimateTransition(TransitionState startValues, TransitionState targetValues)
-        {
-            float elapsedTime = 0f;
-
-            while (elapsedTime < _transitionDuration)
-            {
-                elapsedTime += Time.deltaTime;
-                float normalizedTime = Mathf.Clamp01(elapsedTime / Mathf.Max(0.0001f, _transitionDuration));
-
-                // Apply easing curve if available
-                float easedTime = _transitionCurve != null ? _transitionCurve.Evaluate(normalizedTime) : normalizedTime;
-
-                _pixelExtractor.SetTransitionRatio(_pixelExtractorCurve.Evaluate(easedTime));
-
-                // Interpolate all values
-                if (PreviousEffect != null)
-                    PreviousEffect.blend = Mathf.Lerp(startValues.PreviousBlend, targetValues.PreviousBlend, easedTime);
-
-                if (CurrentEffect != null)
-                    CurrentEffect.blend = Mathf.Lerp(startValues.CurrentBlend, targetValues.CurrentBlend, easedTime);
-
-                if (NextEffect != null)
-                    NextEffect.ratio = Mathf.Lerp(startValues.NextRatio, targetValues.NextRatio, easedTime);
-
-                yield return null;
-            }
-        }
-
-        /// <summary>
-        /// Finalize transition by setting exact target values and advancing index
-        /// </summary>
-        private void FinalizeTransition(TransitionState targetValues)
-        {
-            // Lock in final values
-            if (PreviousEffect != null) PreviousEffect.blend = targetValues.PreviousBlend;
-            if (CurrentEffect != null) CurrentEffect.blend = targetValues.CurrentBlend;
-            if (NextEffect != null) NextEffect.ratio = targetValues.NextRatio;
-
-            // Advance to next effect
-            _currentEffectIndex = WrapIndex(_currentEffectIndex + 1);
-            _transitionCoroutine = null;
-        }
-
-        /// <summary>
-        /// Helper struct to hold transition state values
-        /// </summary>
-        private struct TransitionState
-        {
-            public float PreviousBlend;
-            public float CurrentBlend;
-            public float NextRatio;
+            Debug.Log($"Main: Transition completed to effect {effect?.controller?.name ?? "unknown"}", this);
+            StartCoroutine(SaveCaptureTexture());
         }
 
         #endregion
@@ -367,6 +278,12 @@ namespace Chiayi
         /// </summary>
         private IEnumerator SaveCaptureTexture()
         {
+            if (CurrentEffect?.controller?.Output == null)
+            {
+                Debug.LogWarning("Main: No current effect output to capture", this);
+                yield break;
+            }
+
             _captureMaterial.SetTexture("_MainTex", CurrentEffect.controller.Output);
 
             yield return new WaitForSeconds(1f);
@@ -379,29 +296,29 @@ namespace Chiayi
 
             try
             {
-                var timestamp = DateTime.Now.ToString("yyMMdd_HHmmss");
-                var filename = $"capture_{timestamp}.png";
-                var fullPath = Path.Combine(_outputFolder, filename);
+                var outputFolder = _config?.outputFolder ?? "C:/Chiayi/";
+                var filename = _config?.GetCaptureFilename() ?? $"capture_{DateTime.Now:yyMMdd_HHmmss}.png";
+                var fullPath = Path.Combine(outputFolder, filename);
 
                 // Ensure directory exists
-                Directory.CreateDirectory(_outputFolder);
+                Directory.CreateDirectory(outputFolder);
 
                 TextureIO.SaveRenderTextureToPNG(_captureTexture, fullPath);
                 Debug.Log($"Main: Saved capture to {fullPath}", this);
-                SendPathToOSC(fullPath);
+                
+                OnCaptureSaved?.Invoke(fullPath);
+                
+                // Send path via OSC if handler is available
+                if (_oscHandler != null)
+                {
+                    _oscHandler.SendPath(fullPath);
+                }
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Main: Failed to save capture texture - {ex.Message}", this);
+                OnError?.Invoke(ex);
             }
-        }
-
-
-        private void SendPathToOSC(string path)
-        {
-            var encoder = new MessageEncoder(UPLOAD_PATH_OSC_ADDRESS);
-            encoder.Add(path);
-            _osc.Send(encoder);
         }
 
         /// <summary>
@@ -412,11 +329,15 @@ namespace Chiayi
         {
             var issues = new List<string>();
 
+            if (_config == null)
+                issues.Add("Effect configuration is not assigned");
+
             if (_outputMaterial == null)
                 issues.Add("Output material is not assigned");
 
-            if (_effectInstances == null || _effectInstances.Count < REQUIRED_EFFECT_COUNT)
-                issues.Add($"Need at least {REQUIRED_EFFECT_COUNT} effect instances");
+            var requiredCount = _config?.requiredEffectCount ?? 3;
+            if (_effectInstances == null || _effectInstances.Count < requiredCount)
+                issues.Add($"Need at least {requiredCount} effect instances");
 
             for (int i = 0; i < _effectInstances.Count; i++)
             {
@@ -424,6 +345,12 @@ namespace Chiayi
                 if (effect?.controller == null)
                     issues.Add($"Effect instance {i} has no controller assigned");
             }
+
+            if (_transitionManager == null)
+                issues.Add("Transition manager is not assigned");
+
+            if (_oscHandler == null)
+                issues.Add("OSC message handler is not assigned");
 
             if (issues.Count > 0)
             {
@@ -437,7 +364,7 @@ namespace Chiayi
 
         void OnDestroy()
         {
-            StopCurrentTransition();
+            // Cleanup is handled by individual components
         }
 
         #endregion
