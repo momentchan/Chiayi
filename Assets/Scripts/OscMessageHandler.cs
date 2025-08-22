@@ -82,7 +82,7 @@ namespace Chiayi
         /// <summary>
         /// Handle incoming OSC message with texture path
         /// </summary>
-        private void OnReceivePath(OscPort.Capsule capsule)
+        public void OnReceivePath(OscPort.Capsule capsule)
         {
             try
             {
