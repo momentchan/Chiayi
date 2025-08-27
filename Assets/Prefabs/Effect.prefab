@@ -62,11 +62,12 @@ MonoBehaviour:
     threshold: 0.109
     softness: 0.0264
     gain: 0.71
-    strength: 5
+    strengthRange: {x: 2, y: 10}
+    strengthChangeSpeed: 0.2
   _shiftSetting:
     mat: {fileID: 0}
-    pulseSpeed: 0.1
-    pulseParams: {x: 2, y: 5, z: 0.2, w: 0.1}
+    pulseSpeed: 0.2
+    pulseParams: {x: 2, y: 5, z: 0.5, w: 0.3}
     shiftParams1:
       enable: 1
       steps: 8.3

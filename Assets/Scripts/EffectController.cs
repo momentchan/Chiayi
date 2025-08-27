@@ -455,7 +455,8 @@ namespace Chiayi
             [Range(0f, 1f)] public float threshold = 0.3f;
             [Range(0f, 0.1f)] public float softness = 0.03f;
             [Range(0f, 10f)] public float gain = 0.98f;
-            [Range(0f, 20f)] public float strength = 1f;
+            public Vector2 strengthRange = new Vector2(0.5f, 1f);
+            public float strengthChangeSpeed = 0.1f;
 
             public void Update(Texture source, RenderTexture target)
             {
@@ -468,7 +469,8 @@ namespace Chiayi
                 mat.SetFloat("_Threshold", threshold);
                 mat.SetFloat("_Softness", softness);
                 mat.SetFloat("_Gain", gain);
-                mat.SetFloat("_Strength", strength);
+                mat.SetVector("_StrengthRange", strengthRange);
+                mat.SetFloat("_StrengthChangeSpeed", strengthChangeSpeed);
                 mat.SetTexture("_SourceTex", source);
 
                 Graphics.Blit(source, target, mat, 0);
