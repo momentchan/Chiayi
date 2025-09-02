@@ -14,7 +14,7 @@ namespace Chiayi
 
         [Header("Effect Properties")]
         public Texture2D Source { get; set; }
-        public Color BgColor { get; set; } = Color.black;
+        public Texture2D Gradient { get; set; }
         public float Ratio { get; set; } = 1f;
 
         #region RenderTextures
@@ -157,7 +157,6 @@ namespace Chiayi
         {
             // Cache commonly used shader property IDs for better performance
             var ratioID = Shader.PropertyToID("_Ratio");
-            var bgColorID = Shader.PropertyToID("_BgColor");
 
             // Set to all materials that exist
             var materials = new Material[]
@@ -174,7 +173,6 @@ namespace Chiayi
                 if (mat != null)
                 {
                     mat.SetFloat(ratioID, Ratio);
-                    mat.SetColor(bgColorID, BgColor);
                 }
             }
         }
@@ -240,6 +238,7 @@ namespace Chiayi
                 // Set all input textures for composite
                 var mat = _compositeSetting.mat;
                 mat.SetTexture("_SourceTex", Source);
+                mat.SetTexture("_GradientTex", Gradient);
                 mat.SetTexture("_EdgeTex", Edge);
                 mat.SetTexture("_ShiftTex", Shift);
                 mat.SetTexture("_MaskTex", MaskBlur);

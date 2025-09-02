@@ -66,8 +66,8 @@ MonoBehaviour:
     strengthChangeSpeed: 0.2
   _shiftSetting:
     mat: {fileID: 0}
-    pulseSpeed: 0.2
-    pulseParams: {x: 2, y: 5, z: 0.5, w: 0.3}
+    pulseSpeed: 0.1
+    pulseParams: {x: 2, y: 10, z: 0.5, w: 0.3}
     shiftParams1:
       enable: 1
       steps: 8.3

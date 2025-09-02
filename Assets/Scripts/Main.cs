@@ -211,7 +211,9 @@ namespace Chiayi
             UpdateOutputMaterial();
 
             // Handle debug input
+#if UNITY_EDITOR
             HandleDebugInput();
+#endif
         }
 
         /// <summary>
@@ -381,11 +383,11 @@ namespace Chiayi
 
         [Header("Source")]
         public Texture2D source;
+        public Texture2D gradient;
 
         [Header("Parameters")]
         [Range(0f, 1f)] public float ratio = 1f;      // Internal effect intensity
         [Range(0f, 1f)] public float blend = 1f;      // External blend amount
-        public Color bgColor = Color.black;            // Background color
 
         /// <summary>
         /// Update the associated effect controller with current parameters
@@ -402,7 +404,7 @@ namespace Chiayi
             {
                 controller.Source = source;
                 controller.Ratio = ratio;
-                controller.BgColor = bgColor;
+                controller.Gradient = gradient;
             }
             catch (Exception ex)
             {

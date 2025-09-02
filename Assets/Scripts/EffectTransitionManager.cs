@@ -55,6 +55,8 @@ namespace Chiayi
                 nextEffect.source = newTexture;
                 nextEffect.controller.Source = newTexture;
 
+
+
                 // Stop any existing transition and start new one
                 StopCurrentTransition();
                 _transitionCoroutine = StartCoroutine(TransitionCoroutine());

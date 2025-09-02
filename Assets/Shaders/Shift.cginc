@@ -48,7 +48,7 @@ float ComputePulse(
 
     float bump = (a > 0.0) ? RaisedCosineBump(1.0 - a) : 0.0; // center is strongest
     float intensityMod = (sin(pulseIntensityChg * time) * 0.3 + 0.5); // 0.2..0.8
-    return 1.0 + bump * pulseStrength * intensityMod;
+    return 1.0 + pow(bump, 3.0) * pulseStrength * intensityMod;
 }
 
 float JitterT(int i, float invN, float randomStrength, float seedFloat) {
