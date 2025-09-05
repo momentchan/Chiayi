@@ -8,14 +8,16 @@ namespace Chiayi
     public class EffectController : MonoBehaviour, IEffect
     {
         [Header("Configuration")]
+        [SerializeField] private EffectConfiguration _config;
         [SerializeField] private EffectType _effectType;
         [SerializeField] private Vector2Int _textureSize = new Vector2Int(1920, 1080);
         [SerializeField] private RenderTextureFormat _textureFormat = RenderTextureFormat.ARGBFloat;
 
         [Header("Effect Properties")]
         public Texture2D Source { get; set; }
-        public Texture2D Gradient { get; set; }
         public float Ratio { get; set; } = 1f;
+        [field: SerializeField] public int PresetIndex { get; set; } = 0;
+
 
         #region RenderTextures
         // Cached render textures - lazily created
@@ -238,7 +240,7 @@ namespace Chiayi
                 // Set all input textures for composite
                 var mat = _compositeSetting.mat;
                 mat.SetTexture("_SourceTex", Source);
-                mat.SetTexture("_GradientTex", Gradient);
+                mat.SetTexture("_GradientTex", _config.GetPreset(PresetIndex).gradient);
                 mat.SetTexture("_EdgeTex", Edge);
                 mat.SetTexture("_ShiftTex", Shift);
                 mat.SetTexture("_MaskTex", MaskBlur);

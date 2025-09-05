@@ -54,8 +54,7 @@ namespace Chiayi
                 // Set up the next effect with new texture
                 nextEffect.source = newTexture;
                 nextEffect.controller.Source = newTexture;
-
-
+                nextEffect.controller.PresetIndex = UnityEngine.Random.Range(0, _config.presets.Count);
 
                 // Stop any existing transition and start new one
                 StopCurrentTransition();
@@ -78,6 +77,9 @@ namespace Chiayi
         {
             if (!ValidateTransitionSetup())
                 return OperationResult<bool>.Failure("Invalid transition setup");
+
+            var nextEffect = GetNextEffect();
+            nextEffect.controller.PresetIndex = UnityEngine.Random.Range(0, _config.presets.Count);
 
             StopCurrentTransition();
             _transitionCoroutine = StartCoroutine(TransitionCoroutine());
@@ -225,13 +227,13 @@ namespace Chiayi
             };
 
             _pixelExtractor.EnableSpawn(false);
-            
+
             // 5) Animate transition
             yield return StartCoroutine(AnimateTransition(startValues, targetValues));
 
             // 6) Finalize values and advance to next effect
             FinalizeTransition(targetValues);
-            
+
             _pixelExtractor.EnableSpawn(true);
             _pixelExtractor.Execute(nextEffect);
 
@@ -283,10 +285,10 @@ namespace Chiayi
             // Lock in final values
             var previousEffect = GetPreviousEffect();
             if (previousEffect != null) previousEffect.blend = targetValues.PreviousBlend;
-            
+
             var currentEffect = GetCurrentEffect();
             if (currentEffect != null) currentEffect.blend = targetValues.CurrentBlend;
-            
+
             var nextEffect = GetNextEffect();
             if (nextEffect != null) nextEffect.ratio = targetValues.NextRatio;
 
@@ -329,7 +331,7 @@ namespace Chiayi
         public bool IsSuccess { get; private set; }
         public T Data { get; private set; }
         public string ErrorMessage { get; private set; }
-        
+
         public static OperationResult<T> Success(T data) => new() { IsSuccess = true, Data = data };
         public static OperationResult<T> Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
     }

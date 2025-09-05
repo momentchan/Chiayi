@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Chiayi
 {
@@ -14,6 +15,9 @@ namespace Chiayi
         [SerializeField] public AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] public AnimationCurve pixelExtractorCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+        [Header("Effect Presets")]
+        [SerializeField] public List<EffectPreset> presets = new List<EffectPreset>();
+
         [Header("Performance Settings")]
         [SerializeField] public Vector2Int defaultTextureSize = new(1920, 1080);
         [SerializeField] public RenderTextureFormat defaultFormat = RenderTextureFormat.ARGBFloat;
@@ -26,7 +30,7 @@ namespace Chiayi
 
         [Header("Output Settings")]
         [SerializeField] public string outputFolder = "C:/Chiayi/";
-        [SerializeField] public string captureFilenameFormat = "capture_{0}.png";
+        [SerializeField] public string captureFilenameFormat = "capture_{0}_{1}.png";
 
         [Header("OSC Settings")]
         [SerializeField] public string uploadPathOscAddress = "/UploadPath";
@@ -71,21 +75,27 @@ namespace Chiayi
             return new ValidationResult(issues);
         }
 
+        public EffectPreset GetPreset(int index)
+        {
+            return presets[index];
+        }
+
         /// <summary>
         /// Get formatted capture filename with timestamp
         /// </summary>
-        public string GetCaptureFilename()
+        public string GetCaptureFilename(int id)
         {
             var timestamp = System.DateTime.Now.ToString("yyMMdd_HHmmss");
-            return string.Format(captureFilenameFormat, timestamp);
+            var humidity = GetPreset(id).humidity;
+            return string.Format(captureFilenameFormat, timestamp, humidity);
         }
 
         /// <summary>
         /// Get full capture file path
         /// </summary>
-        public string GetCaptureFilePath()
+        public string GetCaptureFilePath(int id)
         {
-            return System.IO.Path.Combine(outputFolder, GetCaptureFilename());
+            return System.IO.Path.Combine(outputFolder, GetCaptureFilename(id));
         }
 
         #endregion
@@ -111,5 +121,12 @@ namespace Chiayi
 
             return $"Configuration has {Issues.Count} issues:\n- {string.Join("\n- ", Issues)}";
         }
+    }
+
+    [System.Serializable]
+    public class EffectPreset
+    {
+        public string humidity;
+        public Texture2D gradient;
     }
 }

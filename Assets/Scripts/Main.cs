@@ -11,7 +11,7 @@ namespace Chiayi
     {
         [Header("Configuration")]
         [SerializeField] private EffectConfiguration _config;
-        
+
         [Header("Output Configuration")]
         [SerializeField] private Material _outputMaterial;
         [SerializeField] private Material _captureMaterial;
@@ -126,6 +126,7 @@ namespace Chiayi
                 {
                     Debug.Log($"Main: Loaded texture from {filePath}", this);
                     OnTextureLoaded?.Invoke(loadedTexture);
+
                     StartTransition(loadedTexture);
                 }
                 else
@@ -298,8 +299,9 @@ namespace Chiayi
 
             try
             {
+                var id = CurrentEffect.controller.PresetIndex;
                 var outputFolder = _config?.outputFolder ?? "C:/Chiayi/";
-                var filename = _config?.GetCaptureFilename() ?? $"capture_{DateTime.Now:yyMMdd_HHmmss}.png";
+                var filename = _config?.GetCaptureFilename(id) ?? $"capture_{DateTime.Now:yyMMdd_HHmmss}.png";
                 var fullPath = Path.Combine(outputFolder, filename);
 
                 // Ensure directory exists
@@ -307,9 +309,9 @@ namespace Chiayi
 
                 TextureIO.SaveRenderTextureToPNG(_captureTexture, fullPath);
                 Debug.Log($"Main: Saved capture to {fullPath}", this);
-                
+
                 OnCaptureSaved?.Invoke(fullPath);
-                
+
                 // Send path via OSC if handler is available
                 if (_oscHandler != null)
                 {
@@ -383,7 +385,6 @@ namespace Chiayi
 
         [Header("Source")]
         public Texture2D source;
-        public Texture2D gradient;
 
         [Header("Parameters")]
         [Range(0f, 1f)] public float ratio = 1f;      // Internal effect intensity
@@ -404,7 +405,6 @@ namespace Chiayi
             {
                 controller.Source = source;
                 controller.Ratio = ratio;
-                controller.Gradient = gradient;
             }
             catch (Exception ex)
             {

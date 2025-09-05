@@ -44,9 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff51bf65d9172ac4ab3b1793fd2e58b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _config: {fileID: 11400000, guid: 6fd0537814c9b7b4887a1603667a42c6, type: 2}
   _effectType: 7
   _textureSize: {x: 1920, y: 1080}
   _textureFormat: 11
+  <PresetIndex>k__BackingField: 0
   _blurShader: {fileID: 4800000, guid: 24680e3a97cd58c47b5c653fd98ccf96, type: 3}
   _maskSetting:
     mat: {fileID: 0}
